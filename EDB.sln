@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DDL.Commands", "DDL.Command
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Errors", "Errors\Errors.csproj", "{F84F3A23-7492-4015-975F-E70982CD79E7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Console", "Console\Console.csproj", "{C7E11C95-28E7-4729-ABF4-AF5E69A3ADCE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +61,10 @@ Global
 		{F84F3A23-7492-4015-975F-E70982CD79E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F84F3A23-7492-4015-975F-E70982CD79E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F84F3A23-7492-4015-975F-E70982CD79E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7E11C95-28E7-4729-ABF4-AF5E69A3ADCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7E11C95-28E7-4729-ABF4-AF5E69A3ADCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7E11C95-28E7-4729-ABF4-AF5E69A3ADCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7E11C95-28E7-4729-ABF4-AF5E69A3ADCE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -69,6 +75,7 @@ Global
 		{3EF30954-1E5B-4E23-87ED-8DDE51E88A2D} = {244594BE-AA32-4236-B8EB-B36A6D12D395}
 		{67DAB6F7-5A7E-4444-A256-5D77F877DBDB} = {C1E8E14C-5DA6-4526-A138-40FD5F4C44CA}
 		{F84F3A23-7492-4015-975F-E70982CD79E7} = {E17724A0-1B80-4309-867E-C244491139BC}
+		{C7E11C95-28E7-4729-ABF4-AF5E69A3ADCE} = {E17724A0-1B80-4309-867E-C244491139BC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {89FFFE4D-25DF-4039-8FC2-C23CBC77EF07}
