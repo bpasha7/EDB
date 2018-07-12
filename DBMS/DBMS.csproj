@@ -9,6 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Errors\Errors.csproj" />
     <ProjectReference Include="..\Settings\Settings.csproj" />
   </ItemGroup>
 
