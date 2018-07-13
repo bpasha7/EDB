@@ -1,41 +1,142 @@
-﻿using System;
+﻿using Errors;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
 
 namespace BinaryFileStream
 {
-    public class FileStream
+    /// <summary>
+    /// File stream for work with data table
+    /// </summary>
+    public class FileStream : IDisposable
     {
-        public FileStream(string dataBaseName, string tableName, bool head = false)
+        private static List<string> _blockedDatabaseTables = new List<string>();
+        private readonly string _path;
+        private System.IO.FileStream _stream;
+        //private BinaryWriter _streamWriter;
+        //private BinaryReader _streamReader;
+        private string Table;
+        public readonly string Database;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="dataBaseName"></param>
+        /// <param name="head">true - head file, false - default</param>
+        /// 
+        public FileStream(string path, string dataBaseName, string tableName, bool head = false)
         {
+            // set root path
+            _path = path;
+            // set database name
+            Database = dataBaseName;
+            // set table name
+            Table = tableName;
+            _path = GetPath(head);
+            // set current path to database table
+            //_path = GetPath(head);
+            // check blocked or not
+            if (_blockedDatabaseTables.Contains(_path))
+                throw new FileSystemError($"Table {dataBaseName} is blocked.");
+            //else
+            //    // insert database table into block list
+            //    _blockedDatabaseTables.Add(_path);
 
         }
         #region File Actions
-        private void Create(string dataBaseName, string tableName, bool head = false)
+        /// <summary>
+        /// Create table
+        /// </summary>
+        public void Create()
         {
-
+            _stream?.Close();
+            _stream = new System.IO.FileStream(_path, FileMode.Create);
+            _stream.Close();
         }
-        private void Open(string dataBaseName, string tableName, bool head = false)
+        public void Delete()
         {
-
+            _stream?.Close();
+            File.Delete(_path);
+        }
+        /// <summary>
+        /// Open database table file by name
+        /// </summary>
+        /// <param name="tableName"> table name</param>
+        public void Open(string tableName/*, bool write = false*/)
+        {
+            // check exists or not database table file
+            if (!File.Exists(_path))
+                throw new FileSystemError($"Table [{tableName}] is not exist.");
+            // insert database table into block list
+                _blockedDatabaseTables.Add(_path);
+            _stream?.Close();
+            _stream = new System.IO.FileStream(_path, FileMode.Open);
+        }
+        /// <summary>
+        /// Close opened file stream and remove it from block database table
+        /// </summary>
+        public void Close()
+        {
+            _stream?.Close();
+            _blockedDatabaseTables.Remove(_path);
+        }
+        /// <summary>
+        /// Generate path depends on extention
+        /// </summary>
+        /// <param name="head">true - head file</param>
+        /// <returns>Path to file</returns>
+        private string GetPath(bool head = false)
+        {
+            var extention = head ? ".dt" : ".df";
+            return $"{_path}{Database}\\{Table}{extention}";
         }
         public void SetPosition(long position)
         {
-
+            _stream?.Seek(position, SeekOrigin.Begin);
         }
         #endregion
         #region Writing Values
-        public char ReadChar()
+        public void WriteByte(byte value)
         {
-            return '0';
+            _stream?.WriteByte(value);
+        }
+        public void WriteInt(int value)
+        {
+            byte[] bytes = BitConverter.GetBytes(value);
+            _stream?.Write(bytes, 0, bytes.Length);
+
+        }
+        public void WriteText(string text)
+        {
+            byte[] bytes = Encoding.ASCII.GetBytes(text);
+            _stream?.Write(bytes, 0, bytes.Length);
+        }
+        #endregion
+        #region Reading Vlaues
+        public byte ReadByte()
+        {
+            return Convert.ToByte(_stream?.ReadByte());
         }
         public int ReadInt()
         {
-            return 0;
+            byte[] intValue = new byte[4];
+            _stream?.Read(intValue, 0, 4);
+            BitConverter.ToInt32(intValue, 0);
+            return BitConverter.ToInt32(intValue, 0);// Convert.ToInt32(intValue);
         }
         public string ReadText(int length)
         {
-            return "0";
+            byte[] textValue = new byte[length];
+            _stream?.Read(textValue, 0, length);
+            return Encoding.ASCII.GetString(textValue);
+        }
+        #endregion
+
+        public void Dispose()
+        {
+            Close();
         }
 
-        #endregion
     }
 }

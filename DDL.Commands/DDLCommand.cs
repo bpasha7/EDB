@@ -3,20 +3,14 @@ using System.Collections.Generic;
 
 namespace DDL.Commands
 {
-    public class DDLCommand
+    public abstract class DDLCommand
     {
-        public string CommandText { get; set; }
-        public string[] Words { get; set; }
+        protected string CommandText { get; set; }
 
-        public DDLCommand(string comandLine)
+        public DDLCommand(string query)
         {
-            Words = comandLine
-                .Trim()
-                .Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            CommandText = query;
         }
-        protected void ParseWords(string query)
-        {
-
-        }
+        protected abstract void ParseQuery();
     }
 }

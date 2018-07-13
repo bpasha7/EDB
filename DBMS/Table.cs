@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DDL.Commands;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -10,12 +11,17 @@ namespace DBMS
         /// Table Name
         /// </summary>
         public readonly string Name;
+        public readonly string Database;
         public Table(string dataBaseName, string tableName)
         {
             Name = tableName;
+            Database = dataBaseName;
         }
-
-        public void Create()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="cmd"></param>
+        public void Create(CreateTableCommand cmd)
         {
 
         }
