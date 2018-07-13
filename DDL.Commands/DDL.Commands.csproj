@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BinaryFileStream\BinaryFileStream.csproj" />
     <ProjectReference Include="..\Errors\Errors.csproj" />
   </ItemGroup>
 

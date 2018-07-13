@@ -1,4 +1,5 @@
-﻿using Errors;
+﻿using BinaryFileStream;
+using Errors;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -40,12 +41,11 @@ namespace DDL.Commands
             TableName = commandWords[2].Trim();
             // 
             Columns = CommandText?
-                .Substring(openBacket + 1, closeBacket)
+                .Substring(openBacket + 1, closeBacket - openBacket)
                 .Trim()
                 .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             if(Columns.Length == 0)
                 throw new CreateTableParse($"Command does not have new columns description.");
         }
-
     }
 }

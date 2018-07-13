@@ -1,4 +1,5 @@
-﻿using DDL.Commands;
+﻿using BinaryFileStream;
+using DDL.Commands;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -17,13 +18,13 @@ namespace DBMS
             Name = tableName;
             Database = dataBaseName;
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="cmd"></param>
-        public void Create(CreateTableCommand cmd)
-        {
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="cmd"></param>
+        //public void Create(CreateTableCommand cmd, FileStream fileStream)
+        //{
 
-        }
+        //}
     }
 }

@@ -34,7 +34,17 @@ namespace Console
         /// <param name="text"></param>
         static public void WriteError(string text)
         {
-            System.Console.BackgroundColor = ConsoleColor.Red;
+            System.Console.ForegroundColor = ConsoleColor.Red;
+            System.Console.WriteLine(text);
+            System.Console.ResetColor();
+        }
+        /// <summary>
+        /// Writing info text with green color
+        /// </summary>
+        /// <param name="text"></param>
+        static public void WriteInfo(string text)
+        {
+            System.Console.ForegroundColor = ConsoleColor.Green;
             System.Console.WriteLine(text);
             System.Console.ResetColor();
         }

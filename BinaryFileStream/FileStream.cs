@@ -46,13 +46,14 @@ namespace BinaryFileStream
         }
         #region File Actions
         /// <summary>
-        /// Create table
+        /// Create file for new table
         /// </summary>
         public void Create()
         {
-            _stream?.Close();
-            _stream = new System.IO.FileStream(_path, FileMode.Create);
-            _stream.Close();
+            //_stream?.Close();
+            //_stream = new System.IO.FileStream(_path, FileMode.Create);
+            //_stream.Close();
+            File.Create(_path);
         }
         public void Delete()
         {
@@ -62,12 +63,11 @@ namespace BinaryFileStream
         /// <summary>
         /// Open database table file by name
         /// </summary>
-        /// <param name="tableName"> table name</param>
-        public void Open(string tableName/*, bool write = false*/)
+        public void Open()
         {
             // check exists or not database table file
             if (!File.Exists(_path))
-                throw new FileSystemError($"Table [{tableName}] is not exist.");
+                throw new FileSystemError($"Table [{Table}] is not exist.");
             // insert database table into block list
                 _blockedDatabaseTables.Add(_path);
             _stream?.Close();
@@ -88,7 +88,7 @@ namespace BinaryFileStream
         /// <returns>Path to file</returns>
         private string GetPath(bool head = false)
         {
-            var extention = head ? ".dt" : ".df";
+            var extention = head ? ".df" : ".dt";
             return $"{_path}{Database}\\{Table}{extention}";
         }
         public void SetPosition(long position)

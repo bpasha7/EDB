@@ -18,7 +18,7 @@ namespace Test_EDB
             var fs = new FileStream(path, db, table);
             fs.Create();
 
-            fs.Open(table);
+            fs.Open();
             fs.SetPosition(0);
 
             byte b = 4;
@@ -30,7 +30,7 @@ namespace Test_EDB
             fs.WriteText(s);
             fs.Close();
 
-            fs.Open(table);
+            fs.Open();
             fs.SetPosition(0);
 
             var res_b = fs.ReadByte();
@@ -54,14 +54,14 @@ namespace Test_EDB
             var fs = new FileStream(path, db, table);
             fs.Create();
 
-            fs.Open(table);
+            fs.Open();
 
             
 
             try
             {
                 var fs3 = new FileStream(path, db, table);
-                fs3.Open(table);
+                fs3.Open();
                 Assert.True(false);
             }
             catch(Exception ex)
@@ -72,8 +72,7 @@ namespace Test_EDB
             fs.Close();
 
             var fs2 = new FileStream(path, db, table);
-            fs2.Open(table);
-            fs2.Open(table);
+            fs2.Open();
             fs2.Close();
             fs2.Delete();
         }

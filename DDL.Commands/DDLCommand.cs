@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BinaryFileStream;
+using System;
 using System.Collections.Generic;
 
 namespace DDL.Commands
@@ -12,5 +13,6 @@ namespace DDL.Commands
             CommandText = query;
         }
         protected abstract void ParseQuery();
+        //public abstract void Excecute(FileStream fileStream);
     }
 }
