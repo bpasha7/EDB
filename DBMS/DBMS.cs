@@ -65,6 +65,9 @@ namespace DBMS
                 catch(Exception ex)
                 {
                     CommandLine.WriteError($"System exeption, see log files.");
+#if DEBUG
+                    CommandLine.WriteError($"{ex}");
+#endif
                 }
             }
         }
@@ -78,7 +81,7 @@ namespace DBMS
             // create new head file for new table
             fileStream = new FileStream(_settings.RootPath, CurrentDatabase, cmd.TableName, true);
             fileStream.Create();
-            fileStream.Close();
+            //fileStream.Close();
             fileStream.Open();
             fileStream.SetPosition(0);
             // write count of columns in the begining of header file

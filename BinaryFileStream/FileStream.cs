@@ -53,7 +53,8 @@ namespace BinaryFileStream
             //_stream?.Close();
             //_stream = new System.IO.FileStream(_path, FileMode.Create);
             //_stream.Close();
-            File.Create(_path);
+            var createStream = File.Create(_path);
+            createStream.Close();
         }
         public void Delete()
         {
@@ -72,6 +73,8 @@ namespace BinaryFileStream
                 _blockedDatabaseTables.Add(_path);
             _stream?.Close();
             _stream = new System.IO.FileStream(_path, FileMode.Open);
+            // lock file
+            //_stream.Lock();
         }
         /// <summary>
         /// Close opened file stream and remove it from block database table
