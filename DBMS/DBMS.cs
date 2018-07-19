@@ -74,33 +74,8 @@ namespace DBMS
         public string CreateTable(string query)
         {
             var cmd = new CreateTableCommand(query);
-            // create new data file for new table
-            var fileStream = new FileStream(_settings.RootPath, CurrentDatabase, cmd.TableName);
-            fileStream.Create();
-            fileStream.Close();
-            // create new head file for new table
-            fileStream = new FileStream(_settings.RootPath, CurrentDatabase, cmd.TableName, true);
-            fileStream.Create();
-            //fileStream.Close();
-            fileStream.Open();
-            fileStream.SetPosition(0);
-            // write count of columns in the begining of header file
-            fileStream.WriteInt(cmd.Columns.Length);
-            var column = new Column();
-            // parse and write columns
-            foreach (var columnInfo in cmd.Columns)
-            {
-                column.ParseType(columnInfo);
-                // write length of column name
-                fileStream.WriteInt(column.Name.Length);
-                // write column name
-                fileStream.WriteText(column.Name);
-                //  write column Type
-                fileStream.WriteByte(column.Type);
-                //  write column Size
-                fileStream.WriteInt(Convert.ToInt32(column.Size));
-            }
-            fileStream.Close();
+            var table = new Table( CurrentDatabase, cmd.TableName);
+            table.Create(cmd);
             return $"Table [{cmd.TableName}] was created.";
         }
         public string GetAuthors()
