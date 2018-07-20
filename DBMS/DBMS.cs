@@ -11,6 +11,9 @@ namespace DBMS
     public class DatabaseManagmentSystem
     {
         private readonly SystemSettings _settings;
+        /// <summary>
+        /// Current database name
+        /// </summary>
         private string CurrentDatabase;
 
         public DatabaseManagmentSystem(IOptions<SystemSettings> settings)
@@ -51,7 +54,7 @@ namespace DBMS
                         ChangeLocation(words[1]);
                         //CommandLine.WriteInfo($"");
                     }
-                    // if create table
+                    // if create table command
                     if (words[0] == "create" && words[1] == "table")
                     {
                         var res = CreateTable(line);

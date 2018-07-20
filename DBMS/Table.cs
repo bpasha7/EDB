@@ -16,6 +16,7 @@ namespace DBMS
         /// Database name
         /// </summary>
         public readonly string Database;
+        public readonly string Path;
         private Column[] _columns;
         //public Table()
         //{
@@ -25,17 +26,17 @@ namespace DBMS
         {
             Name = tableName;
             Database = database;
+#if DEBUG
+            Path = "C:\\Users\\bpash\\Documents\\workspace\\EDB\\EDB\\bin\\Debug\\netcoreapp2.0\\";
+#endif
         }
-
+        /// <summary>
+        /// Get table scheme
+        /// </summary>
         private void getScheme()
         {
-            
-            string path = "";
-#if DEBUG
-            path = "C:\\Users\\bpash\\Documents\\workspace\\EDB\\EDB\\bin\\Debug\\netcoreapp2.0\\";
-#endif
             // open stream to read table scheme
-            var fileStream = new FileStream(path, Database, Name, true);
+            var fileStream = new FileStream(Path, Database, Name, true);
             fileStream.Open();
             fileStream.SetPosition(0);
             // read count of table columns
@@ -56,26 +57,25 @@ namespace DBMS
             }
         }
 
-        public int Insert()
+        public void Insert()
         {
             getScheme();
+            // create new data file for new table
+            var fileStream = new FileStream(Path, Database, Name);
+            fileStream.Open();
 
-            return 0;
+            // return 0;
         }
 
 
         public void Create(CreateTableCommand cmd)
         {
-            string path = "";
-#if DEBUG
-            path = "C:\\Users\\bpash\\Documents\\workspace\\EDB\\EDB\\bin\\Debug\\netcoreapp2.0\\";
-#endif
             // create new data file for new table
-            var fileStream = new FileStream(path, Database, Name);
+            var fileStream = new FileStream(Path, Database, Name);
             fileStream.Create();
             fileStream.Close();
             // create new head file for new table
-            fileStream = new FileStream(path, Database, Name, true);
+            fileStream = new FileStream(Path, Database, Name, true);
             fileStream.Create();
             fileStream.Open();
             fileStream.SetPosition(0);

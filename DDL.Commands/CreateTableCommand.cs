@@ -26,7 +26,7 @@ namespace DDL.Commands
         protected override void ParseQuery()
         {
             // find index of open bracket in create query, where are descriptions of columns
-            var openBacket = CommandText.IndexOf('(');
+            var openBacket = CommandText.LastIndexOf('(');
             // find index of close bracket in create query, where are descriptions of columns
             var closeBacket = CommandText.LastIndexOf(')');
             if(openBacket == -1 || closeBacket == -1 || openBacket == closeBacket)
