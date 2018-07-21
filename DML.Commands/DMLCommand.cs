@@ -23,10 +23,10 @@ namespace DML.Commands
                 //throw new DMLCommandError($"Command has incorrect signature. Check brackets.");
             // get command words, words befor descriptions of columns
             var agrs = query?
-                .Substring(openBacket, closeBacket)
+                .Substring(openBacket + 1, closeBacket - openBacket - 1)
                 .Trim()
                 .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            query = query.Remove(openBacket);
+            query = query.Remove(openBacket, closeBacket - openBacket + 1);
             return agrs;
 
         }

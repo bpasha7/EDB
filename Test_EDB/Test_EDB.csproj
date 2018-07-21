@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BinaryFileStream\BinaryFileStream.csproj" />
+    <ProjectReference Include="..\DML.Commands\DML.Commands.csproj" />
     <ProjectReference Include="..\EDB\EDB.csproj" />
   </ItemGroup>
 

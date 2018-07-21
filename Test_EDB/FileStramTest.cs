@@ -12,7 +12,8 @@ namespace Test_EDB
         [Fact]
         public void WritingReadingFileTest()
         {
-            var path = "D:\\workspaces\\EDB\\EDB\\bin\\Debug\\netcoreapp2.0\\";
+            //var path = "D:\\workspaces\\EDB\\EDB\\bin\\Debug\\netcoreapp2.0\\";
+            var path = "C:\\Users\\bpash\\Documents\\workspace\\EDB\\EDB\\bin\\Debug\\netcoreapp2.0\\";
             var db = "test";
             var table = "test";
             var fs = new FileStream(path, db, table);
@@ -48,7 +49,8 @@ namespace Test_EDB
         [Fact]
         public void AccessBlockedFilesTest()
         {
-            var path = "D:\\workspaces\\EDB\\EDB\\bin\\Debug\\netcoreapp2.0\\";
+            //var path = "D:\\workspaces\\EDB\\EDB\\bin\\Debug\\netcoreapp2.0\\";
+            var path = "C:\\Users\\bpash\\Documents\\workspace\\EDB\\EDB\\bin\\Debug\\netcoreapp2.0\\";
             var db = "test";
             var table = "test";
             var fs = new FileStream(path, db, table);
