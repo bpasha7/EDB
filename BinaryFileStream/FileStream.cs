@@ -98,6 +98,10 @@ namespace BinaryFileStream
         {
             _stream?.Seek(position, SeekOrigin.Begin);
         }
+        public long GetPosition()
+        {
+            return _stream.Position;
+        }
         #endregion
         #region Writing Values
         public void WriteByte(byte value)

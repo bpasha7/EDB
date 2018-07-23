@@ -1,10 +1,12 @@
 ﻿using BinaryFileStream;
 using Console;
 using DDL.Commands;
+using DML.Commands;
 using Errors;
 using Microsoft.Extensions.Options;
 using Settings;
 using System;
+using System.Diagnostics;
 
 namespace DBMS
 {
@@ -16,14 +18,18 @@ namespace DBMS
         /// </summary>
         private string CurrentDatabase;
 
+        private Stopwatch _stopwatch;
+
         public DatabaseManagmentSystem(IOptions<SystemSettings> settings)
         {
             _settings = settings.Value;
+            _stopwatch = new Stopwatch();
         }
         public void Run()
         {
             CommandLine.Location = "EDB";
             CommandLine.WriteError(_settings.Authors);
+            _stopwatch.Start();
             ReadCommands();
         }
         private void ChangeLocation(string databaseName)
@@ -54,10 +60,21 @@ namespace DBMS
                         ChangeLocation(words[1]);
                         //CommandLine.WriteInfo($"");
                     }
+                    // show info
+                    if (words[0] == "/info")
+                    {
+                        CommandLine.WriteInfo($"Uptime: {_stopwatch.Elapsed}");
+                    }
                     // if create table command
                     if (words[0] == "create" && words[1] == "table")
                     {
                         var res = CreateTable(line);
+                        CommandLine.WriteInfo(res);
+                    }
+                    // if insert into
+                    if (words[0] == "insert" && words[1] == "into")
+                    {
+                        var res = InsertIntoTable(line);
                         CommandLine.WriteInfo(res);
                     }
                 }
@@ -78,8 +95,19 @@ namespace DBMS
         {
             var cmd = new CreateTableCommand(query);
             var table = new Table( CurrentDatabase, cmd.TableName);
+            var start =_stopwatch.Elapsed;
             table.Create(cmd);
-            return $"Table [{cmd.TableName}] was created.";
+            var executeTime = _stopwatch.Elapsed - start;
+            return $"Table [{cmd.TableName}] was created. Execution time: {executeTime}.";
+        }
+        public string InsertIntoTable(string query)
+        {
+            var cmd = new InsertCommand(query);
+            var table = new Table(CurrentDatabase, cmd.TableName);
+            var start = _stopwatch.Elapsed;
+            table.Insert(cmd);
+            var executeTime = _stopwatch.Elapsed - start;
+            return $"New record was inserted. Execution time: {executeTime}.";
         }
         public string GetAuthors()
         {

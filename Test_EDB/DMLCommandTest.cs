@@ -13,7 +13,6 @@ namespace Test_EDB
         [InlineData("INSERT INTO test (Id, Name) VALUES (1, 'test strinG wiTH UP and down case.')")]
         [InlineData("INSERT INTO test (ID, name) VALUES (2, 'test strinG wiTH UP and down case.', '2345')")]
         [InlineData("INSERT INTO test (ID, Name) VALUES (2)")]
-        // [InlineData("testName inT")]
         public void ParsePatternedInsertCommandTest(string sqlQuery)
         {
             try
