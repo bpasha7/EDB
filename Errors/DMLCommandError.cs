@@ -10,7 +10,7 @@ namespace Errors
         {
         }
     }
-
+    #region Insert errors
     public class InsertCommandParse : DMLCommandError
     {
         public InsertCommandParse(string message, int code = 0) : base(message, code)
@@ -24,4 +24,20 @@ namespace Errors
         {
         }
     }
+    #endregion
+    #region Select error
+    public class SelectCommandParse : DMLCommandError
+    {
+        public SelectCommandParse(string message, int code = 0) : base(message, code)
+        {
+        }
+    }
+
+    public class SelectCommandExcecute : DMLCommandError
+    {
+        public SelectCommandExcecute(string message, int code = 0) : base(message, code)
+        {
+        }
+    }
+    #endregion
 }

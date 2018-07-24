@@ -2,6 +2,7 @@
 using Errors;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Xunit;
 
@@ -50,5 +51,41 @@ namespace Test_EDB
                 Assert.Equal(typeof(InsertCommandParse), ex.GetType());
             }
         }
+
+        [Theory]
+        [InlineData("select * from test")]
+        [InlineData("select id from test")]
+        [InlineData("select id FROM test")]
+        public void ParseSelectCommandTest(string sqlQuery)
+        {
+
+        }
+
+        #region GetingWordIndexFromArray
+        [Theory]
+        [InlineData("select * from test")]
+        [InlineData("select id from test")]
+        [InlineData("select id FROM test")]
+        [InlineData("select id From test")]
+        [InlineData("SELECT id From test")]
+        [InlineData("select id, text from test")]
+        public void GetingWordIndexFromArray(string sqlQuery)
+        {
+            var words = sqlQuery.Split(new char[] { ' ' });
+            var res = getIndexWord(words, "from");
+            Assert.NotEqual(-1, res);
+            res = getIndexWord(words, "extraword");
+            Assert.Equal(-1, res);
+        }
+
+        private int getIndexWord(string[] words, string word)
+        {
+            var i = words
+                .Select((text, index) => new { Text = text, Index = index })
+                .Where(w => w.Text.ToLower() == word)
+                .SingleOrDefault();
+            return i == null ? -1 : i.Index;
+        }
+        #endregion
     }
 }

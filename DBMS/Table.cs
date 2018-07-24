@@ -61,6 +61,8 @@ namespace DBMS
                     _columns[i].Type = fileStream.ReadByte();
                     // read column size
                     _columns[i].Size = Convert.ToUInt32(fileStream.ReadInt());
+                    // set offset in record
+                    _columns[i].Offset = i == 0 ? 0 : _columns[i - 1].Size;
                 }
 
             }
@@ -115,8 +117,10 @@ namespace DBMS
                 var lastPosition = fileStream.ReadInt();
                 fileStream.SetPosition(lastPosition);
                 // if patterned query
+#warning not released
                 if(hasPattern)
                 {
+                    throw new Exception("Method not released");
                    // for
                 }
                 else
@@ -154,8 +158,9 @@ namespace DBMS
                     }
                 }
                 // write last posistion
+                var pos = (int)fileStream.GetPosition();
                 fileStream.SetPosition(0);
-                fileStream.WriteInt((int)fileStream.GetPosition());
+                fileStream.WriteInt(pos);
             }
             catch (Exception ex)
             {
@@ -183,6 +188,9 @@ namespace DBMS
             // create new data file for new table
             fileStream = new FileStream(Path, Database, Name);
             fileStream.Create();
+            fileStream.Open();
+            //write position for next insert data
+            fileStream.WriteInt(4);
             fileStream.Close();
             // create new head file for new table
             fileStream = new FileStream(Path, Database, Name, true);

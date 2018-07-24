@@ -4,9 +4,9 @@ using System.Text;
 
 namespace Errors
 {
-    public abstract class DLLCommandError : Error
+    public abstract class DDLCommandError : Error
     {
-        public DLLCommandError(string message, int code = 0) : base(message, code)
+        public DDLCommandError(string message, int code = 0) : base(message, code)
         {
         }
     }
