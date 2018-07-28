@@ -10,16 +10,18 @@ namespace DML.Commands
     {
         public bool AllColumns { get; set; }
         public IList<string> ColumnsName { get; set; }
+        public Dictionary<string, bool> OrderBy { get; set; }
 
         public SelectCommand(string[] words)
         {
-            ColumnsName = new List<string>();  
+            ColumnsName = new List<string>();
+            OrderBy = new Dictionary<string, bool>();
             parse(words);
         }
         private void parse(string[] words)
         {
             var fromIndex = getIndexWord(words, "from");
-            if(fromIndex + 1 >= words.Length)
+            if (fromIndex + 1 >= words.Length)
                 throw new SelectCommandParse($"Not found table name into query.");
             // set table name
             TableName = words[fromIndex + 1];
@@ -27,7 +29,7 @@ namespace DML.Commands
             if (words[1] == "*" && fromIndex == 2)
                 AllColumns = true;
             // if there are columns name by commas
-            else if(fromIndex > 2)
+            else if (fromIndex > 2)
             {
                 for (int i = 1; i < fromIndex; i++)
                 {
@@ -37,6 +39,55 @@ namespace DML.Commands
             else
             {
                 throw new SelectCommandParse($"Not found columns into query.");
+            }
+
+            var orderIndex = -1;
+            try
+            {
+                orderIndex = getIndexWord(words, "order");
+            }
+            catch (SelectCommandParse error)
+            {
+                // skip if no order by clause
+            }
+            // do not have order by clause into query
+            if (orderIndex == -1)
+            {
+                return;
+            }
+            // if ... no continue for order by clause
+            if (words.Length - orderIndex < 2)
+            {
+                throw new SelectCommandParse($"Not found ORDER BY columns into query.");
+            }
+            // check BY after ORDER
+            if (words[orderIndex + 1].ToLower() != "by")
+            {
+                throw new SelectCommandParse($"Not found 'BY' after ORDER clause into query.");
+            }
+            // parse order by clause
+            for (int i = orderIndex + 2; i < words.Length; i++)
+            {
+                string item = words[i]
+                    .Replace(",", "")
+                    .Trim();
+                // checking double column
+                if (OrderBy.ContainsKey(item))
+                {
+                    throw new SelectCommandParse($"Double column [{item}] for ORDER clause into query.");
+                }
+                bool asc = true;
+                if (i + 1 != words.Length)
+                {
+                    string type = words[i + 1]
+                        .Replace(",", "")
+                        .ToLower()
+                        .Trim();
+                    if (type == "desc")
+                        asc = false;
+                    i++;
+                }
+                OrderBy.Add(item, asc);
             }
         }
         /// <summary>

@@ -1,6 +1,7 @@
 ﻿using BinaryFileStream;
 using DDL.Commands;
 using DML.Commands;
+using DTO;
 using Errors;
 using System;
 using System.Collections.Generic;
@@ -106,7 +107,7 @@ namespace DBMS
             };
         }
 
-        private void insert(IDictionary<string, string> values, bool hasPattern)
+        private bool insert(IDictionary<string, string> values, bool hasPattern)
         {
             try
             {
@@ -161,14 +162,16 @@ namespace DBMS
                 var pos = (int)fileStream.GetPosition();
                 fileStream.SetPosition(0);
                 fileStream.WriteInt(pos);
+                return true;
             }
             catch (Exception ex)
             {
-                if(typeof(InsertCommandExcecute) == ex.GetType())
-                {
-                    throw ex as InsertCommandExcecute;
-                }
-                throw new Errors.Error(ex.Message);
+                //if(typeof(InsertCommandExcecute) == ex.GetType())
+                //{
+                //    throw ex as InsertCommandExcecute;
+                //}
+                //throw new Errors.Error(ex.Message);
+                return false;
             }
             finally
             {
@@ -180,7 +183,16 @@ namespace DBMS
         public void Insert(InsertCommand cmd)
         {
             getScheme();
-            insert(cmd.Values, cmd.HasPattern);
+            var res = insert(cmd.Values, cmd.HasPattern);
+            if (!res)
+                throw new InsertCommandExcecute($"The row was not inserted.");
+        }
+
+        public ResultData Select(SelectCommand cmd)
+        {
+            var resultData = new ResultData();
+
+            return resultData;
         }
 
         public void Create(CreateTableCommand cmd)

@@ -13,6 +13,7 @@
     <ProjectReference Include="..\Console\Console.csproj" />
     <ProjectReference Include="..\DDL.Commands\DDL.Commands.csproj" />
     <ProjectReference Include="..\DML.Commands\DML.Commands.csproj" />
+    <ProjectReference Include="..\DTO\DTO.csproj" />
     <ProjectReference Include="..\Errors\Errors.csproj" />
     <ProjectReference Include="..\Settings\Settings.csproj" />
   </ItemGroup>
