@@ -53,12 +53,19 @@ namespace Test_EDB
         }
 
         [Theory]
-        [InlineData("select * from test")]
-        [InlineData("select id from test")]
-        [InlineData("select id FROM test")]
-        public void ParseSelectCommandTest(string sqlQuery)
+        [InlineData("select * from test where a > c and c == 0 or c > 1")]
+        [InlineData("select id from test where a > c and c == 0 or c > 1")]
+        [InlineData("select id FROM test where a > c and c == 0 or c > 1")]
+        [InlineData("select id FROM test where a > c or c == 0 or c > 1")]
+        public void ParseConditionsSelectCommandTest(string sqlQuery)
         {
-
+            var words = sqlQuery
+                .ToLower()
+                .Trim()
+                .Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            var cmd = new SelectCommand(words);
+            Assert.Equal(3, cmd.Conditions.Count);
+            Assert.Equal(2, cmd.ConditionsOperators.Count);
         }
 
         #region GetingWordIndexFromArray

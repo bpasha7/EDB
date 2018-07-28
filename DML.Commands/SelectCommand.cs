@@ -8,14 +8,32 @@ namespace DML.Commands
 {
     public class SelectCommand : DMLCommand
     {
+        /// <summary>
+        /// Flag if all columns
+        /// </summary>
         public bool AllColumns { get; set; }
-        public IList<string> ColumnsName { get; set; }
-        public Dictionary<string, bool> OrderBy { get; set; }
+        /// <summary>
+        /// Columns to return
+        /// </summary>
+        public IList<string> ColumnsName { get; }
+        /// <summary>
+        /// Conditions into SELECT query
+        /// </summary>
+        public IList<Condition> Conditions { get; }
+        /// <summary>
+        /// Conditions operators
+        /// </summary>
+        public IList<string> ConditionsOperators { get; }
+        /// Fields ordering dictionary
+        /// </summary>
+        public Dictionary<string, bool> OrderBy { get; }
 
         public SelectCommand(string[] words)
         {
             ColumnsName = new List<string>();
+            ConditionsOperators = new List<string>();
             OrderBy = new Dictionary<string, bool>();
+            Conditions = new List<Condition>();
             parse(words);
         }
         private void parse(string[] words)
@@ -29,7 +47,7 @@ namespace DML.Commands
             if (words[1] == "*" && fromIndex == 2)
                 AllColumns = true;
             // if there are columns name by commas
-            else if (fromIndex > 2)
+            else if (fromIndex >= 2)
             {
                 for (int i = 1; i < fromIndex; i++)
                 {
@@ -41,7 +59,9 @@ namespace DML.Commands
                 throw new SelectCommandParse($"Not found columns into query.");
             }
 
+
             var orderIndex = -1;
+            var whereIndex = -1;
             try
             {
                 orderIndex = getIndexWord(words, "order");
@@ -49,6 +69,34 @@ namespace DML.Commands
             catch (SelectCommandParse error)
             {
                 // skip if no order by clause
+            }
+            try
+            {
+                whereIndex = getIndexWord(words, "where");
+            }
+            catch (SelectCommandParse error)
+            {
+                // skip if no order by clause
+            }
+            // parse conditions
+            if (whereIndex != -1)
+            {
+                var indexTo = orderIndex == -1 ? words.Length : orderIndex;
+                var conditionParts = new List<string>();
+                for (int i = whereIndex + 1; i < indexTo; i++)
+                {
+                    if (words[i].ToLower() == "and" || words[i].ToLower() == "or")
+                    {
+                        ConditionsOperators.Add(words[i].ToLower());
+                        Conditions.Add(new Condition(conditionParts));
+                        conditionParts = new List<string>();
+                    }
+                    else
+                    {
+                        conditionParts.Add(words[i]);
+                    }
+                }
+                Conditions.Add(new Condition(conditionParts));
             }
             // do not have order by clause into query
             if (orderIndex == -1)

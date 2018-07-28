@@ -33,6 +33,13 @@ namespace Errors
         }
     }
 
+    public class ConditionParse : DMLCommandError
+    {
+        public ConditionParse(string message, int code = 0) : base(message, code)
+        {
+        }
+    }
+
     public class SelectCommandExcecute : DMLCommandError
     {
         public SelectCommandExcecute(string message, int code = 0) : base(message, code)
