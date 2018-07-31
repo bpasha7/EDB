@@ -47,6 +47,37 @@ namespace Test_EDB
         }
 
         [Fact]
+        public void RewriteDataIntoFileTest()
+        {
+            var path = "C:\\Users\\bpash\\Documents\\workspace\\EDB\\EDB\\bin\\Debug\\netcoreapp2.0\\";
+            var db = "test";
+            var table = "testR";
+            var fs = new FileStream(path, db, table);
+            fs.Create();
+            fs.Open();
+            fs.SetPosition(0);
+            fs.WriteInt(10002);
+            fs.WriteText("|123456780|");
+
+            fs.SetPosition(0);
+            var res1 = fs.ReadInt();
+
+            Assert.Equal(10002, res1);
+
+            fs.Close();
+            fs.Open();
+            fs.SetPosition(0);
+            fs.WriteInt(10003);
+            fs.SetPosition(0);
+            res1 = fs.ReadInt();
+            Assert.Equal(10003, res1);
+
+            fs.Close();
+            //fs.Delete();
+
+        }
+
+        [Fact]
         public void AccessBlockedFilesTest()
         {
             //var path = "D:\\workspaces\\EDB\\EDB\\bin\\Debug\\netcoreapp2.0\\";

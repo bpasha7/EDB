@@ -98,9 +98,9 @@ namespace BinaryFileStream
         {
             _stream?.Seek(position, SeekOrigin.Begin);
         }
-        public long GetPosition()
+        public long? GetPosition()
         {
-            return _stream.Position;
+            return _stream?.Position;
         }
         #endregion
         #region Writing Values

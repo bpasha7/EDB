@@ -45,7 +45,7 @@ namespace DBMS
                 // open stream to read table scheme
                 fileStream = new FileStream(Path, Database, Name, true);
                 fileStream.Open();
-                fileStream.SetPosition(0);
+                fileStream.SetPosition(4);
                 // read count of table columns
                 var columnsCount = fileStream.ReadInt();
                 // create array to read columns properties
@@ -162,6 +162,16 @@ namespace DBMS
                 var pos = (int)fileStream.GetPosition();
                 fileStream.SetPosition(0);
                 fileStream.WriteInt(pos);
+                fileStream.Close();
+                fileStream = new FileStream(Path, Database, Name, true);
+                fileStream.Open();
+                fileStream.SetPosition(0);
+                pos = fileStream.ReadInt();
+                fileStream.SetPosition(pos);
+                fileStream.WriteInt(lastPosition);
+                fileStream.SetPosition(0);
+                fileStream.WriteInt(pos + 4);
+                fileStream.Close();
                 return true;
             }
             catch (Exception ex)
@@ -209,6 +219,8 @@ namespace DBMS
             fileStream.Create();
             fileStream.Open();
             fileStream.SetPosition(0);
+            // write fake position where rows positions will be
+            fileStream.WriteInt(100);
             // write count of columns in the begining of header file
             fileStream.WriteInt(cmd.Columns.Length);
             var column = new Column();
@@ -225,6 +237,12 @@ namespace DBMS
                 //  write column Size
                 fileStream.WriteInt(Convert.ToInt32(column.Size));
             }
+            // get current position
+            var pos = fileStream.GetPosition();
+            // write current position
+            fileStream.SetPosition(0);
+            // rewrite fake position
+            fileStream.WriteInt((int)pos);
             fileStream.Close();
         }
     }
