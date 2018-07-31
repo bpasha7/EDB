@@ -3,6 +3,7 @@ using Console;
 using DDL.Commands;
 using DML.Commands;
 using Errors;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Settings;
 using System;
@@ -13,6 +14,7 @@ namespace DBMS
     public class DatabaseManagmentSystem
     {
         private readonly SystemSettings _settings;
+        private readonly ILogger<DatabaseManagmentSystem> _logger;
         /// <summary>
         /// Current database name
         /// </summary>
@@ -20,15 +22,18 @@ namespace DBMS
 
         private Stopwatch _stopwatch;
 
-        public DatabaseManagmentSystem(IOptions<SystemSettings> settings)
+        public DatabaseManagmentSystem(IOptions<SystemSettings> settings, ILogger<DatabaseManagmentSystem> logger)
         {
+            _logger = logger;
+            _logger.LogInformation("Set system settings.");
             _settings = settings.Value;
             _stopwatch = new Stopwatch();
         }
         public void Run()
         {
+            _logger.LogInformation("Run system.");
             CommandLine.Location = "EDB";
-            CommandLine.WriteError(_settings.Authors);
+            //CommandLine.WriteError(_settings.Authors);
             _stopwatch.Start();
             ReadCommands();
         }
@@ -37,6 +42,7 @@ namespace DBMS
             // check if database exist
             //if()
             CommandLine.Location = CurrentDatabase = databaseName;
+            _logger.LogInformation($"Change database to {databaseName}.");
             //CommandLine.Location = "EDB";
 
         }
@@ -81,6 +87,7 @@ namespace DBMS
                 catch(Error error)
                 {
                     CommandLine.WriteError($"{error}");
+                    _logger.LogError($"{error}");
                 }
                 catch(Exception ex)
                 {
@@ -88,6 +95,7 @@ namespace DBMS
 #if DEBUG
                     CommandLine.WriteError($"{ex}");
 #endif
+                    _logger.LogCritical($"{ex}");
                 }
             }
         }

@@ -23,12 +23,15 @@ namespace DBMS
         public readonly string Path;
         private Column[] _columns;
         private FileStream fileStream;
+        private readonly NLog.Logger _logger;
         //public Table()
         //{
 
         //}
         public Table(string database, string tableName)
         {
+            _logger = NLog.LogManager.GetCurrentClassLogger();
+            _logger.Info("test");
             Name = tableName;
             Database = database;
 #if DEBUG
@@ -211,7 +214,7 @@ namespace DBMS
             fileStream = new FileStream(Path, Database, Name);
             fileStream.Create();
             fileStream.Open();
-            //write position for next insert data
+            // write position for next insert data
             fileStream.WriteInt(4);
             fileStream.Close();
             // create new head file for new table

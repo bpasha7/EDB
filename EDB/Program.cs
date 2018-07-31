@@ -2,7 +2,11 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Settings;
+using NLog;
 using System;
+//using Microsoft.Extensions.Logging;
+using NLog.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace Program
 {
@@ -35,6 +39,11 @@ namespace Program
             ConfigureServices(_serviceCollection);
 
             _serviceProvider = _serviceCollection.BuildServiceProvider();
+
+            var loggerFactory = _serviceProvider.GetRequiredService<ILoggerFactory>();
+            //configure NLog
+            loggerFactory.AddNLog(new NLogProviderOptions { CaptureMessageTemplates = true, CaptureMessageProperties = true });
+            NLog.LogManager.LoadConfiguration("nlog.config");
         }
         /// <summary>
         /// 
@@ -70,59 +79,10 @@ namespace Program
 
             // add app
             serviceCollection.AddTransient<DatabaseManagmentSystem>();
+
+            serviceCollection.AddSingleton<ILoggerFactory, LoggerFactory>();
+            serviceCollection.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
+            //serviceCollection.AddLogging((builder) => builder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace));
         }
     }
-
-    //public class ProgramTest
-    //{
-    //    public ServiceCollection _serviceCollection;
-    //    public ServiceProvider _serviceProvider;
-    //    public DatabaseManagmentSystem Domain
-    //    {
-    //        get
-    //        {
-    //            return _serviceProvider.GetService<DatabaseManagmentSystem>();
-    //        }
-    //    }
-    //    public ProgramTest()
-    //    {
-
-    //    }
-    //    //
-    //    private void Build()
-    //    {
-    //        _serviceCollection = new ServiceCollection();
-
-    //        ConfigureServices(_serviceCollection);
-
-    //        _serviceProvider = _serviceCollection.BuildServiceProvider();
-    //    }
-    //    /// <summary>
-    //    /// 
-    //    /// </summary>
-    //    /// <param name="serviceCollection"></param>
-    //    private void ConfigureServices(IServiceCollection serviceCollection)
-    //    {
-
-    //        //// add services
-    //        //serviceCollection.AddTransient<ITestService, TestService>();
-
-    //        var builder = new ConfigurationBuilder()
-    //            .SetBasePath(System.IO.Directory.GetCurrentDirectory())
-    //            .AddJsonFile("settings.json", optional: false, reloadOnChange: true)
-    //            .AddEnvironmentVariables();
-
-    //        IConfigurationRoot configuration = builder.Build();
-
-    //        serviceCollection.AddOptions();
-    //        serviceCollection.Configure<SystemSettings>(configuration);
-
-    //        //var settings = new SystemSettings();
-    //        //configuration.Bind(settings);
-
-    //        // add app
-    //        serviceCollection.AddTransient<DatabaseManagmentSystem>();
-    //    }
-    //}
-
 }
