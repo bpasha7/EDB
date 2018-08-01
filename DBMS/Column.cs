@@ -14,7 +14,12 @@ namespace DBMS
         private uint _size;
         private byte _type;
         private ulong _offset;
+        private bool _visible;
 
+        /// <summary>
+        /// Name of column
+        /// </summary>
+        public bool Visible { get => _visible; set => _visible = value; }
         /// <summary>
         /// Name of column
         /// </summary>

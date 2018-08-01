@@ -24,10 +24,7 @@ namespace DBMS
         private Column[] _columns;
         private FileStream fileStream;
         private readonly NLog.Logger _logger;
-        //public Table()
-        //{
 
-        //}
         public Table(string database, string tableName)
         {
             _logger = NLog.LogManager.GetCurrentClassLogger();
@@ -81,6 +78,15 @@ namespace DBMS
             }
         }
         /// <summary>
+        /// Get Columns if exist by name
+        /// </summary>
+        /// <param name="name"Columns name</param>
+        /// <returns>column or null</returns>
+        private Column getColumnByName(string name)
+        {
+            return _columns.SingleOrDefault(c => c.Name.ToLower() == name.ToLower());
+        }
+        /// <summary>
         /// Check data type from scheme and value from query
         /// </summary>
         /// <param name="fieldName">Field name</param>
@@ -89,7 +95,7 @@ namespace DBMS
         private bool checkDataToInsert(string fieldName, string value)
         {
             // find column by name
-            var col = _columns.SingleOrDefault(c => c.Name == fieldName);
+            var col = getColumnByName(fieldName);
             // try parse value by type
             switch (col?.Type)
             {
@@ -204,6 +210,68 @@ namespace DBMS
         public ResultData Select(SelectCommand cmd)
         {
             var resultData = new ResultData();
+            _logger?.Trace($"Получение схемы таблицы {Name}.");
+            getScheme();
+            // if all columns
+            if (cmd.AllColumns)
+            {
+                // add namne of columns to result data
+                foreach (var column in _columns)
+                {
+                    resultData.Headers.Add(column.Name);
+                }
+                _logger?.Trace($"Добавление названия полей в структуру ответа.");
+            }
+            // has pattern
+            else
+            {
+                foreach (var item in cmd.ColumnsName)
+                {
+                    var col = getColumnByName(item);
+                    if (col == null)
+                        throw new SelectCommandExcecute($"Columns [{item}] not exist into table [{Name}].");
+#warning 'Check setting flag or delete it'
+                    col.Visible = true;
+                    resultData.Headers.Add(col.Name);
+                }
+            }
+            // if filtered column
+            if (cmd.Conditions.Count != 0)
+            {
+
+            }
+            fileStream = new FileStream(Path, Database, Name);
+            fileStream.Open();
+            fileStream.SetPosition(0);
+            // read table records count
+            var recordsCount = fileStream.ReadInt();
+            _logger?.Trace($"Получение числа записей в таблице {Name}: {recordsCount}.");
+            // cycle by records to read
+            for (int i = 0; i < recordsCount; i++)
+            {
+                var record = new object[cmd.ColumnsName.Count];
+                var skip = false;
+                // cycle by colmns to read
+                for (int j = 0; j < _columns.Length; j++)
+                {
+                    switch (_columns[j].Type)
+                    {
+                        case 1:
+                            {
+
+                            }
+                            break;
+                        case 2:
+                            break;
+                        case 3:
+                            break;
+                        default:
+                            //throw new SelectCommandExcecute($"{}");
+                            break;
+                    }
+                }
+            }
+
 
             return resultData;
         }
