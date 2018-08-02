@@ -68,6 +68,44 @@ namespace Test_EDB
             Assert.Equal(2, cmd.ConditionsOperators.Count);
         }
 
+        [Theory]
+        [InlineData("a > 0", 100)]
+        [InlineData("a >= 0", 0)]
+        [InlineData("a = 0", 0)]
+        [InlineData("a <= 0", -100)]
+        [InlineData("a <> 0", -100)]
+        public void OperateIntConditionsTest(string sqlQuery, int val)
+        {
+            var words = parseBySpaces(sqlQuery).ToList();
+            var condition = new Condition(words);
+            var res = condition.Operate("a", val);
+            Assert.True(res);
+            res = condition.Operate("A", val);
+            Assert.True(res);
+        }
+
+        [Theory]
+        [InlineData("a = 'test'", "test")]
+        [InlineData("a <> 'test'", "test1")]
+        public void OperateStringConditionsTest(string sqlQuery, string val)
+        {
+            var words = parseBySpaces(sqlQuery).ToList();
+            var condition = new Condition(words);
+            var res = condition.Operate("a", val);
+            Assert.True(res);
+            res = condition.Operate("A", val);
+            Assert.True(res);
+        }
+
+        private string[] parseBySpaces(string sentence)
+        {
+            return
+                 sentence
+                .ToLower()
+                .Trim()
+                .Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        }
+
         #region GetingWordIndexFromArray
         [Theory]
         [InlineData("select * from test")]

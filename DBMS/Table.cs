@@ -258,6 +258,7 @@ namespace DBMS
                     {
                         case 1:
                             {
+                                int val = fileStream.ReadInt();
 
                             }
                             break;
