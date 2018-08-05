@@ -67,7 +67,7 @@ namespace DBMS
                 }
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new Errors.Error(ex.Message);
             }
@@ -128,10 +128,10 @@ namespace DBMS
                 fileStream.SetPosition(lastPosition);
                 // if patterned query
 #warning not released
-                if(hasPattern)
+                if (hasPattern)
                 {
                     throw new Exception("Method not released");
-                   // for
+                    // for
                 }
                 else
                 {
@@ -199,12 +199,145 @@ namespace DBMS
             }
         }
 
+        public void TestIndex()
+        {
+            fileStream = new FileStream(Path, Database, Name);
+            fileStream.Create();
+            fileStream.Open();
+
+        }
         public void Insert(InsertCommand cmd)
         {
             getScheme();
             var res = insert(cmd.Values, cmd.HasPattern);
             if (!res)
                 throw new InsertCommandExcecute($"The row was not inserted.");
+        }
+        
+        private object[] readRecord(/*IList<Column> columns*/)
+        {
+
+            var values = new object[_columns.Length];
+            //var current = 0;
+            // cycle by colmns to read
+            for (int j = 0; j < _columns.Length; j++)
+            {
+                switch (_columns[j].Type)
+                {
+                    case 1:
+                        {
+                            int val = fileStream.ReadInt();
+                            _logger.Trace($"Read number {val}. Columns {_columns[j].Name}.");
+                            values[j] = val;
+                        }
+                        break;
+                    case 2:
+                        {
+                            byte val = fileStream.ReadByte();
+                            _logger.Trace($"Read byte {val}. Columns {_columns[j].Name}.");
+                            values[j] = val;
+                        }
+                        break;
+                    case 3:
+                        {
+                            int length = fileStream.ReadInt();
+                            string val = fileStream.ReadText(length);
+                            _logger.Trace($"Read text {val}. Columns {_columns[j].Name}.");
+                            values[j] = val;
+                        }
+                        break;
+                    default:
+                        //throw new SelectCommandExcecute($"{}");
+                        break;
+                }
+            }
+            return values;
+        }
+
+        private bool checkConditions(IList<Condition> conditions, IList<string> operators, Dictionary<string, int> columnDictionary, object[] values)
+        {
+            bool res = true;
+            // if single condition
+            if(conditions.Count == 1 && operators.Count == 0 && columnDictionary.Count == 1)
+            {
+                var kV = columnDictionary.ElementAt(0);
+                var col = _columns[kV.Value];
+                switch (col.Type)
+                    {
+                    case 1:
+                        {
+                            var val = Convert.ToInt32(values[kV.Value]);
+                            res = conditions[0].Operate(col.Name, val);
+                            return res;
+                        }
+                    case 2:
+                        {
+                            //res = conditions[0].Operate(col.Name, val);
+                            return res;
+                        }
+                    case 3:
+                        {
+                            return res;
+                        }
+                    default:
+                        return false;
+
+                }
+            }
+            return res;
+        }
+
+        private void select(SelectCommand cmd, ResultData resultData, IList<int> positions = null)
+        {
+            // get columns that visible
+            _logger.Trace($"Get columns to input data.");
+            var columns = _columns.Where(col => col.Visible).ToList();
+            _logger.Trace($"Got {columns.Count} columns to input data.");
+            // if filtered column
+            var columnDictionary = new Dictionary<string, int>();
+            // if have conditions create dictionary with fields
+            if (cmd.Conditions.Count != 0)
+            {
+                _logger.Trace($"Try to catch fields into condition.");
+                // find fields into conditions
+                for (int i = 0; i < _columns.Length; i++)
+                {
+                    var colName = _columns[i].Name.ToLower();
+                    var fieldCondition = cmd.Conditions
+                        .Where(condition => condition.Operands.Contains(colName))
+                        .SingleOrDefault();
+                    if (fieldCondition != null && !columnDictionary.ContainsKey(colName))
+                    {
+                        // add into dictionary
+                        _logger.Info($"Detected field [{_columns[i].Name}] into conditions.");
+                        columnDictionary.Add(colName, i);
+                    }
+                }
+            }
+            fileStream = new FileStream(Path, Database, Name);
+            fileStream.Open();
+            if (positions == null)
+            {
+                fileStream.SetPosition(0);
+                // read table records count
+                var recordsCount = fileStream.ReadInt();
+                _logger?.Trace($"Получение числа записей в таблице {Name}: {recordsCount}.");
+
+                // cycle by records to read
+                for (int i = 0; i < recordsCount; i++)
+                {
+                    // flag to not read 
+                    //var skip = false;
+                    var record = readRecord();
+                    // check condtions
+
+                    resultData.Values.Add(record);
+                }
+            }
+            else
+            {
+
+            }
         }
 
         public ResultData Select(SelectCommand cmd)
@@ -235,43 +368,7 @@ namespace DBMS
                     resultData.Headers.Add(col.Name);
                 }
             }
-            // if filtered column
-            if (cmd.Conditions.Count != 0)
-            {
 
-            }
-            fileStream = new FileStream(Path, Database, Name);
-            fileStream.Open();
-            fileStream.SetPosition(0);
-            // read table records count
-            var recordsCount = fileStream.ReadInt();
-            _logger?.Trace($"Получение числа записей в таблице {Name}: {recordsCount}.");
-            // cycle by records to read
-            for (int i = 0; i < recordsCount; i++)
-            {
-                var record = new object[cmd.ColumnsName.Count];
-                var skip = false;
-                // cycle by colmns to read
-                for (int j = 0; j < _columns.Length; j++)
-                {
-                    switch (_columns[j].Type)
-                    {
-                        case 1:
-                            {
-                                int val = fileStream.ReadInt();
-
-                            }
-                            break;
-                        case 2:
-                            break;
-                        case 3:
-                            break;
-                        default:
-                            //throw new SelectCommandExcecute($"{}");
-                            break;
-                    }
-                }
-            }
 
 
             return resultData;

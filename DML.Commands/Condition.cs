@@ -80,7 +80,7 @@ namespace DML.Commands
         private string TruncQuetes(string val)
         {
             if (val.Length > 2 && (val[0] != val[val.Length - 1]))
-                return val;
+                return val.ToLower();
             var res = val;
             if (res[res.Length - 1] == '\'' || res[res.Length - 1] == '`')
                 res = res.Remove(res.Length - 1, 1);
@@ -100,7 +100,7 @@ namespace DML.Commands
             // find index of field name into operands list if exist
             var fieldOperandIndex = getOperandIndex(fieldName);
             if (fieldOperandIndex == null)
-                return false;
+                return true;
             // set index of value operator
             var secondOperandIndex = fieldOperandIndex == 0 ? 1 : 0;
             // convert value
@@ -117,7 +117,7 @@ namespace DML.Commands
             // find index of field name into operands list if exist
             var fieldOperandIndex = getOperandIndex(fieldName);
             if (fieldOperandIndex == null)
-                return false;
+                return true;
             // set index of value operator
             var secondOperandIndex = fieldOperandIndex == 0 ? 1 : 0;
             // convert value
