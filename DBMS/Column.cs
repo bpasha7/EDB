@@ -11,9 +11,9 @@ namespace DBMS
     public class Column
     {
         private string _name;
-        private uint _size;
+        private int _size;
         private byte _type;
-        private ulong _offset;
+        private int _offset;
         private bool _visible;
 
         /// <summary>
@@ -34,11 +34,11 @@ namespace DBMS
         /// <summary>
         /// Size of colums in bytes
         /// </summary>
-        public UInt32 Size { get => _size; set => _size = value; }
+        public int Size { get => _size; set => _size = value; }
         /// <summary>
         /// Offset from record beginning
         /// </summary>
-        public ulong Offset { get => _offset; set => _offset = value; }
+        public int Offset { get => _offset; set => _offset = value; }
         /// <summary>
         /// Parse column defenition from query
         /// </summary>
@@ -71,7 +71,7 @@ namespace DBMS
                     if (splited.Length != 3)
                         throw new ColumnError($"Can not parse size of VARCHAR from ['{arguments}']. ");
                     _type = 3;
-                    _size = Convert.ToUInt32(splited[2]);
+                    _size = Convert.ToInt32(splited[2]);
                     break;
                 default:
                     throw new ColumnError($"'{splited[1]}' is not supported type. ");

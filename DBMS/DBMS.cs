@@ -2,6 +2,7 @@
 using Console;
 using DDL.Commands;
 using DML.Commands;
+using DTO;
 using Errors;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -57,7 +58,6 @@ namespace DBMS
                         break;
                     // split line to words
                     var words = line
-                        .ToLower()
                         .Trim()
                         .Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     // navigate through databases
@@ -67,21 +67,29 @@ namespace DBMS
                         //CommandLine.WriteInfo($"");
                     }
                     // show info
-                    if (words[0] == "/info")
+                    if (words[0].ToLower() == "/info")
                     {
                         CommandLine.WriteInfo($"Uptime: {_stopwatch.Elapsed}");
                     }
                     // if create table command
-                    if (words[0] == "create" && words[1] == "table")
+                    if (words[0].ToLower() == "create" && words[1].ToLower() == "table")
                     {
                         var res = CreateTable(line);
                         CommandLine.WriteInfo(res);
                     }
                     // if insert into
-                    if (words[0] == "insert" && words[1] == "into")
+                    if (words[0].ToLower() == "insert" && words[1].ToLower() == "into")
                     {
                         var res = InsertIntoTable(line);
                         CommandLine.WriteInfo(res);
+                    }
+                    // if select from
+#warning 'Rewrite condition'
+                    if (words[0].ToLower() == "select")
+                    {
+                        string info = "";
+                        var res = SelectFromTable(words, out info);
+                        CommandLine.WriteInfo(info);
                     }
                 }
                 catch(Error error)
@@ -116,6 +124,16 @@ namespace DBMS
             table.Insert(cmd);
             var executeTime = _stopwatch.Elapsed - start;
             return $"New record was inserted. Execution time: {executeTime}.";
+        }
+        public ResultData SelectFromTable(string[] words, out string executeInfo)
+        {
+            var cmd = new SelectCommand(words);
+            var table = new Table(CurrentDatabase, cmd.TableName);
+            var start = _stopwatch.Elapsed;
+            var res = table.Select(cmd);
+            var executeTime = _stopwatch.Elapsed - start;
+            executeInfo = $"New record was inserted. Execution time: {executeTime}.";
+            return res;
         }
         public string GetAuthors()
         {

@@ -61,7 +61,7 @@ namespace DBMS
                     // read column type
                     _columns[i].Type = fileStream.ReadByte();
                     // read column size
-                    _columns[i].Size = Convert.ToUInt32(fileStream.ReadInt());
+                    _columns[i].Size = fileStream.ReadInt();
                     // set offset in record
                     _columns[i].Offset = i == 0 ? 0 : _columns[i - 1].Size;
                 }
@@ -114,6 +114,20 @@ namespace DBMS
                 default:
                     return false;
             };
+        }
+        /// <summary>
+        /// Get one record size
+        /// </summary>
+        /// <returns></returns>
+        private int getRecordSize()
+        {
+            var size = 0;
+            // sum all columns size
+            foreach (var item in _columns)
+            {
+                size += item.Size;
+            }
+            return size;
         }
 
         private bool insert(IDictionary<string, string> values, bool hasPattern)
@@ -213,10 +227,9 @@ namespace DBMS
             if (!res)
                 throw new InsertCommandExcecute($"The row was not inserted.");
         }
-        
+
         private object[] readRecord(/*IList<Column> columns*/)
         {
-
             var values = new object[_columns.Length];
             //var current = 0;
             // cycle by colmns to read
@@ -240,8 +253,8 @@ namespace DBMS
                         break;
                     case 3:
                         {
-                            int length = fileStream.ReadInt();
-                            string val = fileStream.ReadText(length);
+                            int length = Convert.ToInt32(_columns[j].Size);//fileStream.ReadInt();
+                            string val = fileStream.ReadText(length).TrimStart();
                             _logger.Trace($"Read text {val}. Columns {_columns[j].Name}.");
                             values[j] = val;
                         }
@@ -254,19 +267,19 @@ namespace DBMS
             return values;
         }
 
-        private bool checkConditions(IList<Condition> conditions, IList<string> operators, Dictionary<string, int> columnDictionary, object[] values)
+        private bool checkConditions(IList<Condition> conditions, IList<string> operators, Dictionary<string, int> columnDictionary, object[] recodValues)
         {
             bool res = true;
             // if single condition
-            if(conditions.Count == 1 && operators.Count == 0 && columnDictionary.Count == 1)
+            if (conditions.Count == 1 && operators.Count == 0 && columnDictionary.Count == 1)
             {
                 var kV = columnDictionary.ElementAt(0);
                 var col = _columns[kV.Value];
                 switch (col.Type)
-                    {
+                {
                     case 1:
                         {
-                            var val = Convert.ToInt32(values[kV.Value]);
+                            var val = Convert.ToInt32(recodValues[kV.Value]);
                             res = conditions[0].Operate(col.Name, val);
                             return res;
                         }
@@ -277,6 +290,8 @@ namespace DBMS
                         }
                     case 3:
                         {
+                            var val = recodValues[kV.Value] as string;
+                            res = conditions[0].Operate(col.Name, val);
                             return res;
                         }
                     default:
@@ -320,7 +335,7 @@ namespace DBMS
             {
                 fileStream.SetPosition(0);
                 // read table records count
-                var recordsCount = fileStream.ReadInt();
+                var recordsCount = fileStream.ReadInt() / getRecordSize();
                 _logger?.Trace($"Получение числа записей в таблице {Name}: {recordsCount}.");
 
                 // cycle by records to read
@@ -328,16 +343,28 @@ namespace DBMS
                 {
                     // flag to not read 
                     //var skip = false;
+                    _logger.Trace($"Read record {i + 1}.");
                     var record = readRecord();
                     // check condtions
+                    if (checkConditions(cmd.Conditions, cmd.ConditionsOperators, columnDictionary, record))
+                    {
+                        resultData.Values.Add(record);
+                        _logger.Trace($"Record {i + 1} was inserted into result data.");
+                    }
+                    else
+                    {
+                        _logger.Trace($"Record {i + 1} was not inserted into result data.");
 
-                    resultData.Values.Add(record);
+                    }
+                    _logger.Trace($"------------------------------------.");
+
                 }
             }
             else
             {
 
             }
+            fileStream.Close();
         }
 
         public ResultData Select(SelectCommand cmd)
@@ -368,7 +395,7 @@ namespace DBMS
                     resultData.Headers.Add(col.Name);
                 }
             }
-
+            select(cmd, resultData);
 
 
             return resultData;

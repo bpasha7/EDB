@@ -107,9 +107,13 @@ namespace DML.Commands
             var nextOperandValue = Convert.ToInt32(Operands[secondOperandIndex]);
             // compare
             if ((int)fieldOperandIndex < secondOperandIndex)
+            {
                 return operate(val, nextOperandValue);
+            }
             else
+            {
                 return operate(nextOperandValue, val);
+            }
         }
         public bool Operate(string fieldName, string val)
         {
