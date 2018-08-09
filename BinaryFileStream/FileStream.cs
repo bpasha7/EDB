@@ -119,6 +119,11 @@ namespace BinaryFileStream
             byte[] bytes = Encoding.ASCII.GetBytes(text);
             _stream?.Write(bytes, 0, bytes.Length);
         }
+        public void WriteDate(long ticks)
+        {
+            byte[] bytes = BitConverter.GetBytes(ticks);
+            _stream?.Write(bytes, 0, bytes.Length);
+        }
         #endregion
         #region Reading Vlaues
         public byte ReadByte()
@@ -129,14 +134,19 @@ namespace BinaryFileStream
         {
             byte[] intValue = new byte[4];
             _stream?.Read(intValue, 0, 4);
-            BitConverter.ToInt32(intValue, 0);
-            return BitConverter.ToInt32(intValue, 0);// Convert.ToInt32(intValue);
+            return BitConverter.ToInt32(intValue, 0);
         }
         public string ReadText(int length)
         {
             byte[] textValue = new byte[length];
             _stream?.Read(textValue, 0, length);
             return Encoding.ASCII.GetString(textValue);
+        }
+        public long ReadDate()
+        {
+            byte[] longValue = new byte[sizeof(long)];
+            _stream?.Read(longValue, 0, sizeof(long));
+            return BitConverter.ToInt64(longValue, 0);
         }
         #endregion
 

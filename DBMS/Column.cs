@@ -29,6 +29,7 @@ namespace DBMS
         /// INT - 1
         /// BIT - 2
         /// VARCHAR(*) - 3
+        /// DATETIME - 4
         /// </summary>
         public byte Type { get => _type; set => _type = value; }
         /// <summary>
@@ -72,6 +73,11 @@ namespace DBMS
                         throw new ColumnError($"Can not parse size of VARCHAR from ['{arguments}']. ");
                     _type = 3;
                     _size = Convert.ToInt32(splited[2]);
+                    break;
+                // DATETIME type
+                case "datetime":
+                    _type = 4;
+                    _size = sizeof(long);
                     break;
                 default:
                     throw new ColumnError($"'{splited[1]}' is not supported type. ");

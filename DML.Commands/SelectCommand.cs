@@ -36,6 +36,10 @@ namespace DML.Commands
             Conditions = new List<Condition>();
             parse(words);
         }
+        /// <summary>
+        /// Parse sql select query
+        /// </summary>
+        /// <param name="words"></param>
         private void parse(string[] words)
         {
             var fromIndex = getIndexWord(words, "from");

@@ -28,7 +28,7 @@ namespace DBMS
         public Table(string database, string tableName)
         {
             _logger = NLog.LogManager.GetCurrentClassLogger();
-            _logger.Info("test");
+            _logger.Info($"Database: [{database}]. Table: [{tableName}].");
             Name = tableName;
             Database = database;
 #if DEBUG
@@ -176,6 +176,15 @@ namespace DBMS
                                 text = text.PadLeft((int)_columns[i].Size);
                                 fileStream.WriteText(text);
                                 break;
+                            case 4:
+                                DateTime date;
+                                var dateString = dataToInsert[i].Value
+                                    .Substring(1, dataToInsert[i].Value.Length - 2);
+                                var convertResult = DateTime.TryParse(dateString, out date);
+                                if(!convertResult)
+                                    throw new InsertCommandExcecute($"Value for column [{_columns[i].Name}] has not correct datetime format.");
+                                fileStream.WriteDate(date.Ticks);
+                                break;
                             default:
                                 break;
                         }
@@ -213,13 +222,13 @@ namespace DBMS
             }
         }
 
-        public void TestIndex()
-        {
-            fileStream = new FileStream(Path, Database, Name);
-            fileStream.Create();
-            fileStream.Open();
+        //public void TestIndex()
+        //{
+        //    fileStream = new FileStream(Path, Database, Name);
+        //    fileStream.Create();
+        //    fileStream.Open();
 
-        }
+        //}
         public void Insert(InsertCommand cmd)
         {
             getScheme();
@@ -246,7 +255,7 @@ namespace DBMS
                         break;
                     case 2:
                         {
-                            byte val = fileStream.ReadByte();
+                            byte val = Convert.ToByte(fileStream.ReadByte() - 48);
                             _logger.Trace($"Read byte {val}. Columns {_columns[j].Name}.");
                             values[j] = val;
                         }
@@ -256,6 +265,14 @@ namespace DBMS
                             int length = Convert.ToInt32(_columns[j].Size);//fileStream.ReadInt();
                             string val = fileStream.ReadText(length).TrimStart();
                             _logger.Trace($"Read text {val}. Columns {_columns[j].Name}.");
+                            values[j] = val;
+                        }
+                        break;
+                    case 4:
+                        {
+                            var ticks = fileStream.ReadDate();
+                            DateTime val = new DateTime(ticks);
+                            _logger.Trace($"Read datetime {val}. Columns {_columns[j].Name}.");
                             values[j] = val;
                         }
                         break;
@@ -285,7 +302,8 @@ namespace DBMS
                         }
                     case 2:
                         {
-                            //res = conditions[0].Operate(col.Name, val);
+                            var val = Convert.ToInt32(recodValues[kV.Value]);
+                            res = conditions[0].Operate(col.Name, val);
                             return res;
                         }
                     case 3:
@@ -296,8 +314,11 @@ namespace DBMS
                         }
                     default:
                         return false;
-
                 }
+            }
+            else
+            {
+
             }
             return res;
         }
@@ -366,7 +387,11 @@ namespace DBMS
             }
             fileStream.Close();
         }
-
+        /// <summary>
+        /// Select data from table
+        /// </summary>
+        /// <param name="cmd">Select query</param>
+        /// <returns>ResultData</returns>
         public ResultData Select(SelectCommand cmd)
         {
             var resultData = new ResultData();
@@ -400,7 +425,10 @@ namespace DBMS
 
             return resultData;
         }
-
+        /// <summary>
+        /// Create table into data base
+        /// </summary>
+        /// <param name="cmd">Create table query</param>
         public void Create(CreateTableCommand cmd)
         {
             // create new data file for new table

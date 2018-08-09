@@ -45,9 +45,9 @@ namespace DBMS
             CommandLine.Location = CurrentDatabase = databaseName;
             _logger.LogInformation($"Change database to {databaseName}.");
             //CommandLine.Location = "EDB";
-
         }
-        private void ReadCommands()
+
+        public void ReadCommands()
         {
             while(true)
             {
@@ -74,13 +74,17 @@ namespace DBMS
                     // if create table command
                     if (words[0].ToLower() == "create" && words[1].ToLower() == "table")
                     {
+                        _logger.LogInformation($"Read command: [{line}].");
                         var res = CreateTable(line);
+                        _logger.LogInformation($"{res}.");
                         CommandLine.WriteInfo(res);
                     }
                     // if insert into
                     if (words[0].ToLower() == "insert" && words[1].ToLower() == "into")
                     {
+                        _logger.LogInformation($"Read command: [{line}].");
                         var res = InsertIntoTable(line);
+                        _logger.LogInformation($"{res}.");
                         CommandLine.WriteInfo(res);
                     }
                     // if select from
@@ -88,7 +92,9 @@ namespace DBMS
                     if (words[0].ToLower() == "select")
                     {
                         string info = "";
+                        _logger.LogInformation($"Read command: [{line}].");
                         var res = SelectFromTable(words, out info);
+                        _logger.LogInformation($"{info}.");
                         CommandLine.WriteInfo(info);
                     }
                 }
