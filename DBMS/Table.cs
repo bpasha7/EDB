@@ -27,14 +27,13 @@ namespace DBMS
 
         public Table(string path, string database, string tableName)
         {
+            if (!System.IO.File.Exists($"{path}{database}\\{tableName}.df"))
+                throw new Error($"Table [{tableName}] is not exist.");
             _logger = NLog.LogManager.GetCurrentClassLogger();
             _logger.Info($"Database: [{database}]. Table: [{tableName}].");
             Name = tableName;
             Database = database;
             Path = path;
-//#if DEBUG
-//            Path = "C:\\temp\\";
-//#endif
         }
         /// <summary>
         /// Get table scheme from head file

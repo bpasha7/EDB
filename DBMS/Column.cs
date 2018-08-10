@@ -10,11 +10,16 @@ namespace DBMS
     /// </summary>
     public class Column
     {
+        /// name|size|type|_offset|primaryKey|indexName
         private string _name;
         private int _size;
         private byte _type;
         private int _offset;
+
         private bool _visible;
+
+        private bool _primaryKey;
+        private string _indexName;
 
         /// <summary>
         /// Name of column

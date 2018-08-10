@@ -10,13 +10,28 @@ using System.Text;
 
 namespace DBMS
 {
+    /// <summary>
+    /// Database
+    /// </summary>
     public class Database
     {
+        /// <summary>
+        /// Database name
+        /// </summary>
         public readonly string Name;
+        /// <summary>
+        /// System root path
+        /// </summary>
         private readonly string _path;
+        /// <summary>
+        /// timer
+        /// </summary>
         private Stopwatch _stopwatch;
-        private bool _opened = false;
-
+        /// <summary>
+        /// Database class constructor
+        /// </summary>
+        /// <param name="path">Path to system storage from settings</param>
+        /// <param name="name">Database name</param>
         public Database(string path, string name)
         {
             var dirPath = $"{path}{name}";

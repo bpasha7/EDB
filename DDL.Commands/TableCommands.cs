@@ -11,11 +11,11 @@ namespace DDL.Commands
         /// <summary>
         /// 
         /// </summary>
-        public string[] Columns { get; set; }
+        public string[] Columns { get; private set; }
         /// <summary>
         /// Table name
         /// </summary>
-        public string TableName { get; set; }
+        public string TableName { get; private set; }
 
         public CreateTableCommand(string query) : base(query)
         {
