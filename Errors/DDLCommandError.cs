@@ -17,4 +17,11 @@ namespace Errors
         {
         }
     }
+
+    public class CreateDatabaseParse : Error
+    {
+        public CreateDatabaseParse(string message, int code = 0) : base(message, code)
+        {
+        }
+    }
 }

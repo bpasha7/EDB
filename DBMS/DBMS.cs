@@ -9,20 +9,33 @@ using Microsoft.Extensions.Options;
 using Settings;
 using System;
 using System.Diagnostics;
+using System.IO;
 
 namespace DBMS
 {
     public class DatabaseManagmentSystem
     {
+        /// <summary>
+        /// System setting from json file
+        /// </summary>
         private readonly SystemSettings _settings;
+        /// <summary>
+        /// Logger
+        /// </summary>
         private readonly ILogger<DatabaseManagmentSystem> _logger;
         /// <summary>
-        /// Current database name
+        /// Current database
         /// </summary>
-        private string CurrentDatabase;
-
+        private Database _currentDatabase;
+        /// <summary>
+        /// Inner system timer
+        /// </summary>
         private Stopwatch _stopwatch;
-
+        /// <summary>
+        /// Constructor for DI
+        /// </summary>
+        /// <param name="settings">Settings factory</param>
+        /// <param name="logger">Logger Factory</param>
         public DatabaseManagmentSystem(IOptions<SystemSettings> settings, ILogger<DatabaseManagmentSystem> logger)
         {
             _logger = logger;
@@ -30,6 +43,9 @@ namespace DBMS
             _settings = settings.Value;
             _stopwatch = new Stopwatch();
         }
+        /// <summary>
+        /// Run system
+        /// </summary>
         public void Run()
         {
             _logger.LogInformation("Run system.");
@@ -38,13 +54,41 @@ namespace DBMS
             _stopwatch.Start();
             ReadCommands();
         }
-        private void ChangeLocation(string databaseName)
+        /// <summary>
+        /// Change data base
+        /// </summary>
+        /// <param name="databaseName">Database name to move</param>
+        private void ChangeDatabase(string databaseName = null)
         {
-            // check if database exist
-            //if()
-            CommandLine.Location = CurrentDatabase = databaseName;
-            _logger.LogInformation($"Change database to {databaseName}.");
-            //CommandLine.Location = "EDB";
+            try
+            {
+                if(databaseName == null)
+                {
+                    _currentDatabase = null;
+                    return;
+                }
+                _currentDatabase = new Database(_settings.RootPath, databaseName);
+                CommandLine.Location = _currentDatabase.Name;
+                _logger.LogInformation($"Change database to {databaseName}.");
+            }
+            catch (Error error)
+            {
+                CommandLine.WriteError($"{error}");
+                _logger.LogError($"{error}");
+            }
+            catch (Exception ex)
+            {
+                CommandLine.WriteError($"System exeption, see log files.");
+#if DEBUG
+                CommandLine.WriteError($"{ex}");
+#endif
+                _logger.LogCritical($"{ex}");
+            }
+            finally
+            {
+                if(_currentDatabase == null)
+                    CommandLine.Location = "EDB";
+            }
         }
 
         public void ReadCommands()
@@ -63,19 +107,36 @@ namespace DBMS
                     // navigate through databases
                     if (words[0] == "#")
                     {
-                        ChangeLocation(words[1]);
-                        //CommandLine.WriteInfo($"");
+                        ChangeDatabase(words[1]);
                     }
                     // show info
                     if (words[0].ToLower() == "/info")
                     {
-                        CommandLine.WriteInfo($"Uptime: {_stopwatch.Elapsed}");
+                        CommandLine.WriteInfo($"Uptime: {_stopwatch.Elapsed}. Version: {_settings.Version}.");
+                    }
+                    //if create database
+                    if(words[0].ToLower() == "create" && words[1].ToLower() == "database")
+                    {
+                        _logger.LogInformation($"Read command: [{line}].");
+                        var cmd = new CreateDatabaseCommand(words);
+                        var res = CreateDatabase(cmd.DatebaseName);
+                        _logger.LogInformation($"{res}.");
+                        CommandLine.WriteInfo(res);
+                    }
+                    //if drop database
+                    if (words[0].ToLower() == "drop" && words[1].ToLower() == "database")
+                    {
+                        _logger.LogInformation($"Read command: [{line}].");
+                        var cmd = new DropDatabaseCommand(words);
+                        var res = DropDatabase(cmd.DatebaseName);
+                        _logger.LogInformation($"{res}.");
+                        CommandLine.WriteInfo(res);
                     }
                     // if create table command
                     if (words[0].ToLower() == "create" && words[1].ToLower() == "table")
                     {
                         _logger.LogInformation($"Read command: [{line}].");
-                        var res = CreateTable(line);
+                        var res = _currentDatabase?.CreateTable(line);
                         _logger.LogInformation($"{res}.");
                         CommandLine.WriteInfo(res);
                     }
@@ -83,7 +144,7 @@ namespace DBMS
                     if (words[0].ToLower() == "insert" && words[1].ToLower() == "into")
                     {
                         _logger.LogInformation($"Read command: [{line}].");
-                        var res = InsertIntoTable(line);
+                        var res = _currentDatabase?.InsertIntoTable(line);
                         _logger.LogInformation($"{res}.");
                         CommandLine.WriteInfo(res);
                     }
@@ -93,7 +154,7 @@ namespace DBMS
                     {
                         string info = "";
                         _logger.LogInformation($"Read command: [{line}].");
-                        var res = SelectFromTable(words, out info);
+                        var res = _currentDatabase?.SelectFromTable(words, out info);
                         _logger.LogInformation($"{info}.");
                         CommandLine.WriteInfo(info);
                     }
@@ -113,34 +174,37 @@ namespace DBMS
                 }
             }
         }
-        public string CreateTable(string query)
+
+        public string CreateDatabase(string databaseName)
         {
-            var cmd = new CreateTableCommand(query);
-            var table = new Table( CurrentDatabase, cmd.TableName);
-            var start =_stopwatch.Elapsed;
-            table.Create(cmd);
-            var executeTime = _stopwatch.Elapsed - start;
-            return $"Table [{cmd.TableName}] was created. Execution time: {executeTime}.";
+            var dirPath = $"{_settings.RootPath}{databaseName}";
+            if (Directory.Exists(dirPath))
+                throw new Error($"Database [{databaseName}] is already exist.");
+            Directory.CreateDirectory(dirPath);
+            return $"Database [{databaseName}] was created.";
         }
-        public string InsertIntoTable(string query)
+
+        public string DropDatabase(string databaseName)
         {
-            var cmd = new InsertCommand(query);
-            var table = new Table(CurrentDatabase, cmd.TableName);
-            var start = _stopwatch.Elapsed;
-            table.Insert(cmd);
-            var executeTime = _stopwatch.Elapsed - start;
-            return $"New record was inserted. Execution time: {executeTime}.";
+            var dirPath = $"{_settings.RootPath}{databaseName}";
+            if (!Directory.Exists(dirPath))
+                throw new Error($"Database [{databaseName}] is not exist.");
+            DirectoryInfo di = new DirectoryInfo(dirPath);
+
+            foreach (FileInfo file in di.GetFiles())
+            {
+                file.Delete();
+            }
+            //foreach (DirectoryInfo dir in di.GetDirectories())
+            //{
+            //    dir.Delete(true);
+            //}
+            Directory.Delete(dirPath);
+            if (_currentDatabase.Name == databaseName)
+                ChangeDatabase();
+            return $"Database [{databaseName}] was deleted.";
         }
-        public ResultData SelectFromTable(string[] words, out string executeInfo)
-        {
-            var cmd = new SelectCommand(words);
-            var table = new Table(CurrentDatabase, cmd.TableName);
-            var start = _stopwatch.Elapsed;
-            var res = table.Select(cmd);
-            var executeTime = _stopwatch.Elapsed - start;
-            executeInfo = $"New record was inserted. Execution time: {executeTime}.";
-            return res;
-        }
+
         public string GetAuthors()
         {
             return _settings.Authors;

@@ -10,7 +10,7 @@ using System.Text;
 
 namespace DBMS
 {
-    public class Table
+    public class Table : IDisposable
     {
         /// <summary>
         /// Table Name
@@ -19,21 +19,22 @@ namespace DBMS
         /// <summary>
         /// Database name
         /// </summary>
-        public readonly string Database;
-        public readonly string Path;
+        private readonly string Database;
+        private readonly string Path;
         private Column[] _columns;
-        private FileStream fileStream;
+        private FileStream _fileStream;
         private readonly NLog.Logger _logger;
 
-        public Table(string database, string tableName)
+        public Table(string path, string database, string tableName)
         {
             _logger = NLog.LogManager.GetCurrentClassLogger();
             _logger.Info($"Database: [{database}]. Table: [{tableName}].");
             Name = tableName;
             Database = database;
-#if DEBUG
-            Path = "C:\\Users\\bpash\\Documents\\workspace\\EDB\\EDB\\bin\\Debug\\netcoreapp2.0\\";
-#endif
+            Path = path;
+//#if DEBUG
+//            Path = "C:\\temp\\";
+//#endif
         }
         /// <summary>
         /// Get table scheme from head file
@@ -43,11 +44,11 @@ namespace DBMS
             try
             {
                 // open stream to read table scheme
-                fileStream = new FileStream(Path, Database, Name, true);
-                fileStream.Open();
-                fileStream.SetPosition(4);
+                _fileStream = new FileStream(Path, Database, Name, true);
+                _fileStream.Open();
+                _fileStream.SetPosition(4);
                 // read count of table columns
-                var columnsCount = fileStream.ReadInt();
+                var columnsCount = _fileStream.ReadInt();
                 // create array to read columns properties
                 _columns = new Column[columnsCount];
                 // read all columns properties
@@ -55,13 +56,13 @@ namespace DBMS
                 {
                     _columns[i] = new Column();
                     // read lenght of columna name
-                    var nameLength = fileStream.ReadInt();
+                    var nameLength = _fileStream.ReadInt();
                     // read column name
-                    _columns[i].Name = fileStream.ReadText(nameLength);
+                    _columns[i].Name = _fileStream.ReadText(nameLength);
                     // read column type
-                    _columns[i].Type = fileStream.ReadByte();
+                    _columns[i].Type = _fileStream.ReadByte();
                     // read column size
-                    _columns[i].Size = fileStream.ReadInt();
+                    _columns[i].Size = _fileStream.ReadInt();
                     // set offset in record
                     _columns[i].Offset = i == 0 ? 0 : _columns[i - 1].Size;
                 }
@@ -74,7 +75,7 @@ namespace DBMS
             finally
             {
                 // close
-                fileStream?.Close();
+                _fileStream?.Close();
             }
         }
         /// <summary>
@@ -134,12 +135,12 @@ namespace DBMS
         {
             try
             {
-                fileStream = new FileStream(Path, Database, Name);
-                fileStream.Open();
+                _fileStream = new FileStream(Path, Database, Name);
+                _fileStream.Open();
                 // read last position and go there to insert new one
-                fileStream.SetPosition(0);
-                var lastPosition = fileStream.ReadInt();
-                fileStream.SetPosition(lastPosition);
+                _fileStream.SetPosition(0);
+                var lastPosition = _fileStream.ReadInt();
+                _fileStream.SetPosition(lastPosition);
                 // if patterned query
 #warning not released
                 if (hasPattern)
@@ -159,11 +160,11 @@ namespace DBMS
                         {
                             case 1:
                                 int intValue = Convert.ToInt32(dataToInsert[i].Value);
-                                fileStream.WriteInt(intValue);
+                                _fileStream.WriteInt(intValue);
                                 break;
                             case 2:
                                 byte byteValue = Convert.ToByte(dataToInsert[i].Value[0]);
-                                fileStream.WriteByte(byteValue);
+                                _fileStream.WriteByte(byteValue);
                                 break;
                             case 3:
                                 // cut text without single quotes
@@ -174,7 +175,7 @@ namespace DBMS
                                     throw new InsertCommandExcecute($"Column [{_columns[i].Name}] has maximum size {_columns[i].Size}.");
                                 // pad text if length is less then column size
                                 text = text.PadLeft((int)_columns[i].Size);
-                                fileStream.WriteText(text);
+                                _fileStream.WriteText(text);
                                 break;
                             case 4:
                                 DateTime date;
@@ -183,7 +184,7 @@ namespace DBMS
                                 var convertResult = DateTime.TryParse(dateString, out date);
                                 if(!convertResult)
                                     throw new InsertCommandExcecute($"Value for column [{_columns[i].Name}] has not correct datetime format.");
-                                fileStream.WriteDate(date.Ticks);
+                                _fileStream.WriteDate(date.Ticks);
                                 break;
                             default:
                                 break;
@@ -191,19 +192,19 @@ namespace DBMS
                     }
                 }
                 // write last posistion
-                var pos = (int)fileStream.GetPosition();
-                fileStream.SetPosition(0);
-                fileStream.WriteInt(pos);
-                fileStream.Close();
-                fileStream = new FileStream(Path, Database, Name, true);
-                fileStream.Open();
-                fileStream.SetPosition(0);
-                pos = fileStream.ReadInt();
-                fileStream.SetPosition(pos);
-                fileStream.WriteInt(lastPosition);
-                fileStream.SetPosition(0);
-                fileStream.WriteInt(pos + 4);
-                fileStream.Close();
+                var pos = (int)_fileStream.GetPosition();
+                _fileStream.SetPosition(0);
+                _fileStream.WriteInt(pos);
+                _fileStream.Close();
+                _fileStream = new FileStream(Path, Database, Name, true);
+                _fileStream.Open();
+                _fileStream.SetPosition(0);
+                pos = _fileStream.ReadInt();
+                _fileStream.SetPosition(pos);
+                _fileStream.WriteInt(lastPosition);
+                _fileStream.SetPosition(0);
+                _fileStream.WriteInt(pos + 4);
+                _fileStream.Close();
                 return true;
             }
             catch (Exception ex)
@@ -218,15 +219,15 @@ namespace DBMS
             finally
             {
                 // close
-                fileStream?.Close();
+                _fileStream?.Close();
             }
         }
 
         //public void TestIndex()
         //{
-        //    fileStream = new FileStream(Path, Database, Name);
-        //    fileStream.Create();
-        //    fileStream.Open();
+        //    _fileStream = new FileStream(Path, Database, Name);
+        //    _fileStream.Create();
+        //    _fileStream.Open();
 
         //}
         public void Insert(InsertCommand cmd)
@@ -248,29 +249,29 @@ namespace DBMS
                 {
                     case 1:
                         {
-                            int val = fileStream.ReadInt();
+                            int val = _fileStream.ReadInt();
                             _logger.Trace($"Read number {val}. Columns {_columns[j].Name}.");
                             values[j] = val;
                         }
                         break;
                     case 2:
                         {
-                            byte val = Convert.ToByte(fileStream.ReadByte() - 48);
+                            byte val = Convert.ToByte(_fileStream.ReadByte() - 48);
                             _logger.Trace($"Read byte {val}. Columns {_columns[j].Name}.");
                             values[j] = val;
                         }
                         break;
                     case 3:
                         {
-                            int length = Convert.ToInt32(_columns[j].Size);//fileStream.ReadInt();
-                            string val = fileStream.ReadText(length).TrimStart();
+                            int length = Convert.ToInt32(_columns[j].Size);//_fileStream.ReadInt();
+                            string val = _fileStream.ReadText(length).TrimStart();
                             _logger.Trace($"Read text {val}. Columns {_columns[j].Name}.");
                             values[j] = val;
                         }
                         break;
                     case 4:
                         {
-                            var ticks = fileStream.ReadDate();
+                            var ticks = _fileStream.ReadDate();
                             DateTime val = new DateTime(ticks);
                             _logger.Trace($"Read datetime {val}. Columns {_columns[j].Name}.");
                             values[j] = val;
@@ -350,13 +351,13 @@ namespace DBMS
                     }
                 }
             }
-            fileStream = new FileStream(Path, Database, Name);
-            fileStream.Open();
+            _fileStream = new FileStream(Path, Database, Name);
+            _fileStream.Open();
             if (positions == null)
             {
-                fileStream.SetPosition(0);
+                _fileStream.SetPosition(0);
                 // read table records count
-                var recordsCount = fileStream.ReadInt() / getRecordSize();
+                var recordsCount = _fileStream.ReadInt() / getRecordSize();
                 _logger?.Trace($"Получение числа записей в таблице {Name}: {recordsCount}.");
 
                 // cycle by records to read
@@ -385,7 +386,7 @@ namespace DBMS
             {
 
             }
-            fileStream.Close();
+            _fileStream.Close();
         }
         /// <summary>
         /// Select data from table
@@ -432,42 +433,47 @@ namespace DBMS
         public void Create(CreateTableCommand cmd)
         {
             // create new data file for new table
-            fileStream = new FileStream(Path, Database, Name);
-            fileStream.Create();
-            fileStream.Open();
+            _fileStream = new FileStream(Path, Database, Name);
+            _fileStream.Create();
+            _fileStream.Open();
             // write position for next insert data
-            fileStream.WriteInt(4);
-            fileStream.Close();
+            _fileStream.WriteInt(4);
+            _fileStream.Close();
             // create new head file for new table
-            fileStream = new FileStream(Path, Database, Name, true);
-            fileStream.Create();
-            fileStream.Open();
-            fileStream.SetPosition(0);
+            _fileStream = new FileStream(Path, Database, Name, true);
+            _fileStream.Create();
+            _fileStream.Open();
+            _fileStream.SetPosition(0);
             // write fake position where rows positions will be
-            fileStream.WriteInt(100);
+            _fileStream.WriteInt(100);
             // write count of columns in the begining of header file
-            fileStream.WriteInt(cmd.Columns.Length);
+            _fileStream.WriteInt(cmd.Columns.Length);
             var column = new Column();
             // parse and write columns
             foreach (var columnInfo in cmd.Columns)
             {
                 column.ParseType(columnInfo);
                 // write length of column name
-                fileStream.WriteInt(column.Name.Length);
+                _fileStream.WriteInt(column.Name.Length);
                 // write column name
-                fileStream.WriteText(column.Name);
+                _fileStream.WriteText(column.Name);
                 //  write column Type
-                fileStream.WriteByte(column.Type);
+                _fileStream.WriteByte(column.Type);
                 //  write column Size
-                fileStream.WriteInt(Convert.ToInt32(column.Size));
+                _fileStream.WriteInt(Convert.ToInt32(column.Size));
             }
             // get current position
-            var pos = fileStream.GetPosition();
+            var pos = _fileStream.GetPosition();
             // write current position
-            fileStream.SetPosition(0);
+            _fileStream.SetPosition(0);
             // rewrite fake position
-            fileStream.WriteInt((int)pos);
-            fileStream.Close();
+            _fileStream.WriteInt((int)pos);
+            _fileStream.Close();
+        }
+
+        public void Dispose()
+        {
+            _fileStream?.Close();
         }
     }
 }

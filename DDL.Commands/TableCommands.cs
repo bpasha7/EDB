@@ -19,7 +19,6 @@ namespace DDL.Commands
 
         public CreateTableCommand(string query) : base(query)
         {
-            CommandText = query;
             ParseQuery();
         }
 

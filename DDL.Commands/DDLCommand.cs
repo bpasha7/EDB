@@ -12,6 +12,10 @@ namespace DDL.Commands
         {
             CommandText = query;
         }
+
+        public DDLCommand(string[] words)
+        {
+        }
         protected abstract void ParseQuery();
         //public abstract void Excecute(FileStream fileStream);
     }

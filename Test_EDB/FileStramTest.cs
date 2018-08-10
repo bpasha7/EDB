@@ -13,7 +13,7 @@ namespace Test_EDB
         public void WritingReadingFileTest()
         {
             //var path = "D:\\workspaces\\EDB\\EDB\\bin\\Debug\\netcoreapp2.0\\";
-            var path = "C:\\Users\\bpash\\Documents\\workspace\\EDB\\EDB\\bin\\Debug\\netcoreapp2.0\\";
+            var path = "C:\\temp\\";
             var db = "test";
             var table = "test";
             var fs = new FileStream(path, db, table);
@@ -49,7 +49,7 @@ namespace Test_EDB
         [Fact]
         public void RewriteDataIntoFileTest()
         {
-            var path = "C:\\Users\\bpash\\Documents\\workspace\\EDB\\EDB\\bin\\Debug\\netcoreapp2.0\\";
+            var path = "C:\\temp\\";
             var db = "test";
             var table = "testR";
             var fs = new FileStream(path, db, table);
@@ -81,7 +81,7 @@ namespace Test_EDB
         public void AccessBlockedFilesTest()
         {
             //var path = "D:\\workspaces\\EDB\\EDB\\bin\\Debug\\netcoreapp2.0\\";
-            var path = "C:\\Users\\bpash\\Documents\\workspace\\EDB\\EDB\\bin\\Debug\\netcoreapp2.0\\";
+            var path = "C:\\temp\\";
             var db = "test";
             var table = "test";
             var fs = new FileStream(path, db, table);
