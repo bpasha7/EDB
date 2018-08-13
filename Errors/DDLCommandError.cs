@@ -18,6 +18,13 @@ namespace Errors
         }
     }
 
+    public class CreateIndexParse : Error
+    {
+        public CreateIndexParse(string message, int code = 0) : base(message, code)
+        {
+        }
+    }
+
     public class CreateDatabaseParse : Error
     {
         public CreateDatabaseParse(string message, int code = 0) : base(message, code)

@@ -56,21 +56,23 @@ namespace Test_EDB
             fs.Create();
             fs.Open();
             fs.SetPosition(0);
-            fs.WriteInt(10002);
+            //fs.WriteInt(10002);
             fs.WriteText("|123456780|");
 
             fs.SetPosition(0);
-            var res1 = fs.ReadInt();
+            //var res1 = fs.rea();
 
-            Assert.Equal(10002, res1);
+            //Assert.Equal(10002, res1);
 
             fs.Close();
             fs.Open();
             fs.SetPosition(0);
-            fs.WriteInt(10003);
+            //fs.WriteInt(10003);
+            fs.WriteText("|0987654321|");
+            fs.WriteInt(1000);
             fs.SetPosition(0);
-            res1 = fs.ReadInt();
-            Assert.Equal(10003, res1);
+            //res1 = fs.ReadInt();
+            //Assert.Equal(10003, res1);
 
             fs.Close();
             //fs.Delete();

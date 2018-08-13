@@ -22,11 +22,13 @@ namespace DBMS.Indexes
         /// </summary>
         public int RecordPosition { get; set; }
         /// <summary>
-        /// Position of next index into index file 
+        /// Position of next index into index file
+        /// if root - 0
         /// </summary>
         public int NextIndex { get; set; }
         /// <summary>
-        /// Position of previous index into index file 
+        /// Position of previous index into index file
+        /// if tail - 0
         /// </summary>
         public int PreviousIndex { get; set; }
     }
