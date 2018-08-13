@@ -460,6 +460,12 @@ namespace DBMS
                 _fileStream.WriteByte(column.Type);
                 //  write column Size
                 _fileStream.WriteInt(Convert.ToInt32(column.Size));
+                // write primary key
+                _fileStream.WriteByte(column.PrimaryKey);
+                // write index name if exist
+                _fileStream.WriteInt(column.IndexName.Length);
+                // write column name
+                _fileStream.WriteText(column.IndexName);
             }
             // get current position
             var pos = _fileStream.GetPosition();

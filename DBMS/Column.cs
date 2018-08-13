@@ -10,7 +10,7 @@ namespace DBMS
     /// </summary>
     public class Column
     {
-        /// name|size|type|_offset|primaryKey|indexName
+        /// name|type|size|primaryKey|indexName
         private string _name;
         private int _size;
         private byte _type;
@@ -18,9 +18,17 @@ namespace DBMS
 
         private bool _visible;
 
-        private bool _primaryKey;
+        private byte _primaryKey;
         private string _indexName;
 
+        /// <summary>
+        /// Id rimary key
+        /// </summary>
+        public byte PrimaryKey { get => _primaryKey; set => _primaryKey = value; }
+        /// <summary>
+        /// Name of index
+        /// </summary>
+        public string IndexName { get => _indexName; set => _indexName = value; }
         /// <summary>
         /// Name of column
         /// </summary>
@@ -51,6 +59,16 @@ namespace DBMS
         /// <param name="arguments">part of sql query</param>
         public void ParseType(string arguments)
         {
+            var str = arguments.ToLower();
+            #region define if primary key columns
+            var PK_ATIBUTE = "primary key";
+            var isPrimary = str.IndexOf(PK_ATIBUTE);
+            if (isPrimary > 0)
+            {
+                _primaryKey = 1;
+                arguments = arguments.Remove(isPrimary, PK_ATIBUTE.Length);
+            }
+            #endregion
             // split part of query by brackets and spaces
             var splited = arguments
                 .Trim()
