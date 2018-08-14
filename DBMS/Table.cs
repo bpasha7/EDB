@@ -1,4 +1,5 @@
 ﻿using BinaryFileStream;
+using DBMS.Indexes;
 using DDL.Commands;
 using DML.Commands;
 using DTO;
@@ -43,7 +44,7 @@ namespace DBMS
             try
             {
                 // open stream to read table scheme
-                _fileStream = new FileStream(Path, Database, Name, true);
+                _fileStream = new FileStream(Path, Database, Name, FileType.Scheme);
                 _fileStream.Open();
                 _fileStream.SetPosition(4);
                 // read count of table columns
@@ -195,7 +196,7 @@ namespace DBMS
                 _fileStream.SetPosition(0);
                 _fileStream.WriteInt(pos);
                 _fileStream.Close();
-                _fileStream = new FileStream(Path, Database, Name, true);
+                _fileStream = new FileStream(Path, Database, Name, FileType.Scheme);
                 _fileStream.Open();
                 _fileStream.SetPosition(0);
                 pos = _fileStream.ReadInt();
@@ -204,6 +205,8 @@ namespace DBMS
                 _fileStream.SetPosition(0);
                 _fileStream.WriteInt(pos + 4);
                 _fileStream.Close();
+
+
                 return true;
             }
             catch (Exception ex)
@@ -439,7 +442,7 @@ namespace DBMS
             _fileStream.WriteInt(4);
             _fileStream.Close();
             // create new head file for new table
-            _fileStream = new FileStream(Path, Database, Name, true);
+            _fileStream = new FileStream(Path, Database, Name, FileType.Scheme);
             _fileStream.Create();
             _fileStream.Open();
             _fileStream.SetPosition(0);
@@ -466,14 +469,49 @@ namespace DBMS
                 _fileStream.WriteInt(column.IndexName.Length);
                 // write column name
                 _fileStream.WriteText(column.IndexName);
+                // create index file for column
+                if(column.IndexName.Length != 0)
+                {
+                    _logger.Trace($"Сооздаем индекс файл [{Name}-{column.IndexName}] для колонки {column.Name}");
+                    var fs = new FileStream(Path, Database, $"{Name}-{column.IndexName}", FileType.Index);
+                    fs.Create();
+                    fs.WriteInt(0);
+                    fs.Close();
+                }
             }
             // get current position
             var pos = _fileStream.GetPosition();
+
             // write current position
             _fileStream.SetPosition(0);
             // rewrite fake position
             _fileStream.WriteInt((int)pos);
             _fileStream.Close();
+
+        }
+
+        private void writeDenseIndex(Column column, DenseIndex index)
+        {
+            try
+            {
+                _fileStream = new FileStream(Path, Database, $"{Name}-{column.Name}", FileType.Index);
+                _logger.Trace($"Запись индекса.");
+                _fileStream.WriteByte(index.Removed);
+                _fileStream.WriteInt(index.Size);
+                _fileStream.WriteBytes(index.Value);
+                _fileStream.WriteInt(index.RecordPosition);
+                _logger.Trace($"Индекс записан.");
+            }
+            catch (Exception ex)
+            {
+                throw new Error($"{ex}");
+            }
+            finally
+            {
+                // close
+                _fileStream?.Close();
+            }
+
         }
 
         public void Dispose()

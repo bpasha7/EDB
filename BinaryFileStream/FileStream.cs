@@ -6,6 +6,7 @@ using System.Text;
 
 namespace BinaryFileStream
 {
+    public enum FileType { Data, Scheme, Index };
     /// <summary>
     /// File stream for work with data table
     /// </summary>
@@ -16,7 +17,7 @@ namespace BinaryFileStream
         private System.IO.FileStream _stream;
         //private BinaryWriter _streamWriter;
         //private BinaryReader _streamReader;
-        private string Table;
+        private string FileName;
         public readonly string Database;
         /// <summary>
         /// 
@@ -25,15 +26,15 @@ namespace BinaryFileStream
         /// <param name="dataBaseName"></param>
         /// <param name="head">true - head file, false - default</param>
         /// 
-        public FileStream(string path, string dataBaseName, string tableName, bool head = false)
+        public FileStream(string path, string dataBaseName, string fileName, FileType type = FileType.Data)
         {
             // set root path
             _path = path;
             // set database name
             Database = dataBaseName;
             // set table name
-            Table = tableName;
-            _path = GetPath(head);
+            FileName = fileName;
+            _path = GetPath(type);
             // set current path to database table
             //_path = GetPath(head);
             // check blocked or not
@@ -68,7 +69,7 @@ namespace BinaryFileStream
         {
             // check exists or not database table file
             if (!File.Exists(_path))
-                throw new FileSystemError($"Table [{Table}] is not exist.");
+                throw new FileSystemError($"Table [{FileName}] is not exist.");
             // insert database table into block list
                 _blockedDatabaseTables.Add(_path);
             _stream?.Close();
@@ -89,10 +90,14 @@ namespace BinaryFileStream
         /// </summary>
         /// <param name="head">true - head file</param>
         /// <returns>Path to file</returns>
-        private string GetPath(bool head = false)
+        private string GetPath(FileType type)
         {
-            var extention = head ? ".df" : ".dt";
-            return $"{_path}{Database}\\{Table}{extention}";
+            var extention = ".dt";
+            if (type == FileType.Scheme)
+                extention = ".df";
+            if (type == FileType.Index)
+                extention = ".idx";
+            return $"{_path}{Database}\\{FileName}{extention}";
         }
         public void SetPosition(long position)
         {
@@ -124,6 +129,10 @@ namespace BinaryFileStream
             byte[] bytes = BitConverter.GetBytes(ticks);
             _stream?.Write(bytes, 0, bytes.Length);
         }
+        public void WriteBytes(byte[] bytes)
+        {
+            _stream?.Write(bytes, 0, bytes.Length);
+        }
         #endregion
         #region Reading Vlaues
         public byte ReadByte()
@@ -141,6 +150,12 @@ namespace BinaryFileStream
             byte[] textValue = new byte[length];
             _stream?.Read(textValue, 0, length);
             return Encoding.ASCII.GetString(textValue);
+        }
+        public byte[] ReadBytes(int length)
+        {
+            byte[] Value = new byte[length];
+            _stream?.Read(Value, 0, length);
+            return Value;
         }
         public long ReadDate()
         {
