@@ -28,8 +28,8 @@ namespace DBMS
 
         public Table(string path, string database, string tableName)
         {
-            if (!System.IO.File.Exists($"{path}{database}\\{tableName}.df"))
-                throw new Error($"Table [{tableName}] is not exist.");
+            //if (!System.IO.File.Exists($"{path}{database}\\{tableName}.df"))
+            //    throw new Error($"Table [{tableName}] is not exist.");
             _logger = NLog.LogManager.GetCurrentClassLogger();
             _logger.Info($"Database: [{database}]. Table: [{tableName}].");
             Name = tableName;
@@ -63,6 +63,12 @@ namespace DBMS
                     _columns[i].Type = _fileStream.ReadByte();
                     // read column size
                     _columns[i].Size = _fileStream.ReadInt();
+                    // read pk flag
+                    _columns[i].PrimaryKey = _fileStream.ReadByte();
+                    // read index name
+                    var indexNameLength = _fileStream.ReadInt();
+                    if(indexNameLength > 0)
+                        _columns[i].IndexName = _fileStream.ReadText(indexNameLength);
                     // set offset in record
                     _columns[i].Offset = i == 0 ? 0 : _columns[i - 1].Size;
                 }
@@ -131,7 +137,7 @@ namespace DBMS
             return size;
         }
 
-        private bool insert(IDictionary<string, string> values, bool hasPattern)
+        private void insert(IDictionary<string, string> values, bool hasPattern)
         {
             try
             {
@@ -153,9 +159,13 @@ namespace DBMS
                     var dataToInsert = values.ToList();
                     // compare count iserted data and column count
                     if (dataToInsert.Count != _columns.Length)
-                        throw new InsertCommandExcecute($"Inserted data does not match fild count in table.");
+                        throw new InsertCommandExcecute($"Inserted data does not match field count in table.");
+
                     for (int i = 0; i < _columns.Length; i++)
                     {
+                        var isValid = checkDataToInsert(_columns[i].Name, dataToInsert[i].Value);
+                        if (!isValid)
+                            throw new InsertCommandExcecute($"Column [{_columns[i].Name}] does not match for [{dataToInsert[i].Value}] format.");
                         switch (_columns[i].Type)
                         {
                             case 1:
@@ -206,17 +216,14 @@ namespace DBMS
                 _fileStream.WriteInt(pos + 4);
                 _fileStream.Close();
 
-
-                return true;
             }
             catch (Exception ex)
             {
-                //if(typeof(InsertCommandExcecute) == ex.GetType())
-                //{
-                //    throw ex as InsertCommandExcecute;
-                //}
-                //throw new Errors.Error(ex.Message);
-                return false;
+                if (typeof(InsertCommandExcecute) == ex.GetType())
+                {
+                    throw ex as InsertCommandExcecute;
+                }
+                throw new Errors.Error(ex.Message);
             }
             finally
             {
@@ -235,9 +242,9 @@ namespace DBMS
         public void Insert(InsertCommand cmd)
         {
             getScheme();
-            var res = insert(cmd.Values, cmd.HasPattern);
-            if (!res)
-                throw new InsertCommandExcecute($"The row was not inserted.");
+            insert(cmd.Values, cmd.HasPattern);
+            //if (!res)
+            //    throw new InsertCommandExcecute($"The row was not inserted.");
         }
 
         private object[] readRecord(/*IList<Column> columns*/)
@@ -260,7 +267,7 @@ namespace DBMS
                         {
                             byte val = Convert.ToByte(_fileStream.ReadByte() - 48);
                             _logger.Trace($"Read byte {val}. Columns {_columns[j].Name}.");
-                            values[j] = val;
+                            values[j] = Convert.ToBoolean(val);
                         }
                         break;
                     case 3:
@@ -434,60 +441,71 @@ namespace DBMS
         /// <param name="cmd">Create table query</param>
         public void Create(CreateTableCommand cmd)
         {
-            // create new data file for new table
-            _fileStream = new FileStream(Path, Database, Name);
-            _fileStream.Create();
-            _fileStream.Open();
-            // write position for next insert data
-            _fileStream.WriteInt(4);
-            _fileStream.Close();
-            // create new head file for new table
-            _fileStream = new FileStream(Path, Database, Name, FileType.Scheme);
-            _fileStream.Create();
-            _fileStream.Open();
-            _fileStream.SetPosition(0);
-            // write fake position where rows positions will be
-            _fileStream.WriteInt(100);
-            // write count of columns in the begining of header file
-            _fileStream.WriteInt(cmd.Columns.Length);
-            var column = new Column();
-            // parse and write columns
-            foreach (var columnInfo in cmd.Columns)
+            try
             {
-                column.ParseType(columnInfo);
-                // write length of column name
-                _fileStream.WriteInt(column.Name.Length);
-                // write column name
-                _fileStream.WriteText(column.Name);
-                //  write column Type
-                _fileStream.WriteByte(column.Type);
-                //  write column Size
-                _fileStream.WriteInt(Convert.ToInt32(column.Size));
-                // write primary key
-                _fileStream.WriteByte(column.PrimaryKey);
-                // write index name if exist
-                _fileStream.WriteInt(column.IndexName.Length);
-                // write column name
-                _fileStream.WriteText(column.IndexName);
-                // create index file for column
-                if(column.IndexName.Length != 0)
+                // create new data file for new table
+                _fileStream = new FileStream(Path, Database, Name);
+                _fileStream.Create();
+                _fileStream.Open();
+                // write position for next insert data
+                _fileStream.WriteInt(4);
+                _fileStream.Close();
+                // create new head file for new table
+                _fileStream = new FileStream(Path, Database, Name, FileType.Scheme);
+                _fileStream.Create();
+                _fileStream.Open();
+                _fileStream.SetPosition(0);
+                // write fake position where rows positions will be
+                _fileStream.WriteInt(100);
+                // write count of columns in the begining of header file
+                _fileStream.WriteInt(cmd.Columns.Length);
+                var column = new Column();
+                // parse and write columns
+                foreach (var columnInfo in cmd.Columns)
                 {
-                    _logger.Trace($"Сооздаем индекс файл [{Name}-{column.IndexName}] для колонки {column.Name}");
-                    var fs = new FileStream(Path, Database, $"{Name}-{column.IndexName}", FileType.Index);
-                    fs.Create();
-                    fs.WriteInt(0);
-                    fs.Close();
+                    column.ParseType(columnInfo);
+                    // write length of column name
+                    _fileStream.WriteInt(column.Name.Length);
+                    // write column name
+                    _fileStream.WriteText(column.Name);
+                    //  write column Type
+                    _fileStream.WriteByte(column.Type);
+                    //  write column Size
+                    _fileStream.WriteInt(Convert.ToInt32(column.Size));
+                    // write primary key
+                    _fileStream.WriteByte(column.PrimaryKey);
+                    // write index name if exist
+                    _fileStream.WriteInt(Convert.ToInt32(column.IndexName?.Length));
+                    // write column name
+                    _fileStream.WriteText(column.IndexName == null ? "" : column.IndexName);
+                    // create index file for column
+                    if (column.IndexName?.Length > 0)
+                    {
+                        _logger.Trace($"Сооздаем индекс файл [{Name}-{column.IndexName}] для колонки {column.Name}");
+                        var fs = new FileStream(Path, Database, $"{Name}-{column.IndexName}", FileType.Index);
+                        fs.Create();
+                        fs.WriteInt(0);
+                        fs.Close();
+                    }
                 }
+                // get current position
+                var pos = _fileStream.GetPosition();
+
+                // write current position
+                _fileStream.SetPosition(0);
+                // rewrite fake position
+                _fileStream.WriteInt((int)pos);
+                _fileStream.Close();
             }
-            // get current position
-            var pos = _fileStream.GetPosition();
-
-            // write current position
-            _fileStream.SetPosition(0);
-            // rewrite fake position
-            _fileStream.WriteInt((int)pos);
-            _fileStream.Close();
-
+            catch (Exception ex)
+            {
+                throw new Errors.Error(ex.Message);
+            }
+            finally
+            {
+                // close
+                _fileStream?.Close();
+            }
         }
 
         private void writeDenseIndex(Column column, DenseIndex index)

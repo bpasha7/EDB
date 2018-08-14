@@ -155,6 +155,7 @@ namespace DBMS
                         string info = "";
                         _logger.LogInformation($"Read command: [{line}].");
                         var res = _currentDatabase?.SelectFromTable(words, out info);
+                        CommandLine.ShowData(res);
                         _logger.LogInformation($"{info}.");
                         CommandLine.WriteInfo(info);
                     }

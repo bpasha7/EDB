@@ -40,6 +40,7 @@ namespace DBMS
             _path = path;
             Name = name;
             _stopwatch = new Stopwatch();
+            _stopwatch.Start();
         }
         /// <summary>
         /// Create table into current database
@@ -53,7 +54,7 @@ namespace DBMS
             var start = _stopwatch.Elapsed;
             table.Create(cmd);
             var executeTime = _stopwatch.Elapsed - start;
-            return $"Table [{cmd.TableName}] was created. Execution time: {executeTime}.";
+            return $"Table [{cmd.TableName}] was created. Execution time: {executeTime}";
         }
         /// <summary>
         /// InsertValues into current database table
@@ -67,10 +68,10 @@ namespace DBMS
             var start = _stopwatch.Elapsed;
             table.Insert(cmd);
             var executeTime = _stopwatch.Elapsed - start;
-            return $"New record was inserted. Execution time: {executeTime}.";
+            return $"New record was inserted. Execution time: {executeTime}";
         }
         /// <summary>
-        /// 
+        /// Select data from table
         /// </summary>
         /// <param name="words"></param>
         /// <param name="executeInfo"></param>
@@ -82,7 +83,7 @@ namespace DBMS
             var start = _stopwatch.Elapsed;
             var res = table.Select(cmd);
             var executeTime = _stopwatch.Elapsed - start;
-            executeInfo = $"New record was inserted. Execution time: {executeTime}.";
+            executeInfo = $"New record was inserted. Execution time: {executeTime}";
             return res;
         }
     }

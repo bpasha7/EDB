@@ -39,7 +39,7 @@ namespace BinaryFileStream
             //_path = GetPath(head);
             // check blocked or not
             if (_blockedDatabaseTables.Contains(_path))
-                throw new FileSystemError($"Table {dataBaseName} is blocked.");
+                throw new FileSystemError($"Database [{dataBaseName}] is blocked.");
             //else
             //    // insert database table into block list
             //    _blockedDatabaseTables.Add(_path);
