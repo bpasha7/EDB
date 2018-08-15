@@ -136,7 +136,11 @@ namespace DBMS
             }
             return size;
         }
-
+        /// <summary>
+        /// Insert values into table
+        /// </summary>
+        /// <param name="values"> Vlaues</param>
+        /// <param name="hasPattern">flag for pattern</param>
         private void insert(IDictionary<string, string> values, bool hasPattern)
         {
             try
@@ -245,14 +249,10 @@ namespace DBMS
                 _fileStream?.Close();
             }
         }
-
-        //public void TestIndex()
-        //{
-        //    _fileStream = new FileStream(Path, Database, Name);
-        //    _fileStream.Create();
-        //    _fileStream.Open();
-
-        //}
+        /// <summary>
+        /// Execute Insert command
+        /// </summary>
+        /// <param name="cmd">Insert command</param>
         public void Insert(InsertCommand cmd)
         {
             getScheme();
@@ -260,8 +260,11 @@ namespace DBMS
             //if (!res)
             //    throw new InsertCommandExcecute($"The row was not inserted.");
         }
-
-        private object[] readRecord(/*IList<Column> columns*/)
+        /// <summary>
+        /// Read record from table. File steam must be opened and position set.
+        /// </summary>
+        /// <returns>Array of read objects from current position</returns>
+        private object[] readRecord()
         {
             var values = new object[_columns.Length];
             //var current = 0;
@@ -371,9 +374,9 @@ namespace DBMS
                         // add into dictionary
                         _logger.Info($"Detected field [{_columns[i].Name}] into conditions.");
                         columnDictionary.Add(colName, i);
-                        if(_columns[i].IndexName?.Length != 0)
+                        if(_columns[i].IndexName?.Length > 0)
                         {
-
+                            positions = readPosition(_columns[i], fieldCondition);
                         }
                     }
                 }
@@ -411,7 +414,30 @@ namespace DBMS
             }
             else
             {
+                // cycle by records to read
+                for (int i = 0; i < positions.Count; i++)
+                {
+                    // flag to not read 
+                    //var skip = false;
+                    _fileStream.SetPosition(positions[i]);
 
+                    _logger.Trace($"Read record {i + 1}.");
+                    var record = readRecord();
+                    resultData.Values.Add(record);
+                    // check condtions
+                    //if (checkConditions(cmd.Conditions, cmd.ConditionsOperators, columnDictionary, record))
+                    //{
+                    //    resultData.Values.Add(record);
+                    //    _logger.Trace($"Record {i + 1} was inserted into result data.");
+                    //}
+                    //else
+                    //{
+                    //    _logger.Trace($"Record {i + 1} was not inserted into result data.");
+
+                    //}
+                    _logger.Trace($"------------------------------------.");
+
+                }
             }
             _fileStream.Close();
         }
@@ -527,6 +553,73 @@ namespace DBMS
             }
         }
 
+        private IList<int> readPosition(Column column, Condition condition)
+        {
+            var positions = new List<int>();
+            FileStream fileStream = null;
+            try
+            {
+                fileStream = new FileStream(Path, Database, $"{Name}-{column.IndexName}", FileType.Index);
+                fileStream.Open();
+                // read indexes count
+                var count = fileStream.ReadInt();
+                // calculate index weight
+                var indexWeight = sizeof(int) + column.Size + sizeof(byte);
+
+                for (int i = 0; i < count; i++)
+                {
+                    // set position into index file
+                    fileStream.SetPosition(4 + i * indexWeight);
+                    // write flag
+                    var isDeleted = fileStream.ReadByte();
+                    if (isDeleted == 1)
+                        continue;
+                    bool res = false;
+                    switch (column.Type)
+                    {
+                        case 1:
+                            {
+                                var val = fileStream.ReadInt();
+                                res = condition.Operate(column.Name, val);
+                                break;
+                            }
+#warning not release filter by bit index
+                        //case 2:
+                        //    {
+                        //        var val = Convert.ToInt32(recodValues[kV.Value]);
+                        //        res = conditions[0].Operate(col.Name, val);
+                        //    }
+                        case 3:
+                            {
+                                var val = fileStream.ReadText(column.Size).TrimStart();
+                                res = condition.Operate(column.Name, val);
+                                break;
+                            }
+                        default:
+                            res = false;
+                            break;
+                    }
+                    // if no result
+                    if (!res)
+                        continue;
+                    // read position
+                    var position = fileStream.ReadInt();
+                    positions.Add(position);
+                }
+                fileStream.Close();
+                return positions;
+            }
+            catch (Exception ex)
+            {
+                throw new Error($"{ex}");
+            }
+            finally
+            {
+                // close
+                fileStream?.Close();
+            }
+        }
+
         private void writeDenseIndex(Column column, DenseIndex index)
         {
             FileStream fileStream = null;
@@ -542,8 +635,8 @@ namespace DBMS
                 else
                 {
                     // calculate index weight
-                    var indexWeight = sizeof(int) + index.Size + index.Removed;
-                    fileStream.SetPosition(count * indexWeight);
+                    var indexWeight = sizeof(int) + index.Size + sizeof(byte);
+                    fileStream.SetPosition(4 + count * indexWeight);
                 }
                 // write flag
                 fileStream.WriteByte(index.Removed);

@@ -17,9 +17,21 @@ namespace Test_EDB.Integration_test
             for (int i = 0; i < 1000; i++)
             {
                 var rnd = new Random();
-                var query = $"insert into stud Values ({rnd.Next(-100, 4000)}, '{randomString(10, rnd)}', {rnd.Next(0, 1)})";
+                var query = $"insert into stud Values ({rnd.Next(-1000, 1000)}, '{randomString(10, rnd)}', {rnd.Next(0, 1)})";
                 db.InsertIntoTable(query);
+            }
+        }
 
+        [Fact]
+        public void InsertIntoIndexTableTest()
+        {
+            string path = "C:\\temp\\", name = "test";
+            var db = new Database(path, name);
+            for (int i = 0; i < 1000; i++)
+            {
+                var rnd = new Random();
+                var query = $"insert into test Values ({rnd.Next(-1000, 1000)}, '{randomString(10, rnd)}', {rnd.Next(0, 1)})";
+                db.InsertIntoTable(query);
             }
         }
 
