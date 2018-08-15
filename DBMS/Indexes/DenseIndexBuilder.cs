@@ -17,10 +17,10 @@ namespace DBMS.Indexes
         /// <param name="index">Default null</param>
         public DenseIndexBuilder(DenseIndex index = null)
         {
-            if (index == null)
-                _index = new DenseIndex();
-            else
-                _index = index;
+            //if (index == null)
+            //    //_index = new DenseIndex();
+            //else
+            //    _index = index;
         }
         /// <summary>
         /// Set string value
@@ -29,6 +29,7 @@ namespace DBMS.Indexes
         /// <returns>Builder</returns>
         public DenseIndexBuilder Value(string value)
         {
+            throw new Error("Not Released");
             _index.Value = Encoding.ASCII.GetBytes(value);
             return this;
         }

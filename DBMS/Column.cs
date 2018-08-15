@@ -69,6 +69,25 @@ namespace DBMS
                 arguments = arguments.Remove(isPrimary, PK_ATIBUTE.Length);
             }
             #endregion
+
+            #region define if indexcolumns
+            var INDEX_ATIBUTE = "index";
+            var isIndex = str.IndexOf(INDEX_ATIBUTE);
+            if (isIndex > 0)
+            {
+                var indexParts = arguments
+                    .Substring(isIndex)
+                    .Trim()
+                    .Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                if (indexParts.Length == 2)
+                {
+                    _indexName = indexParts[1];
+                    arguments = arguments.Substring(0, isIndex);
+                }
+                else
+                    throw new ColumnError($"Can not parse index name  from ['{arguments}'].");
+            }
+            #endregion
             // split part of query by brackets and spaces
             var splited = arguments
                 .Trim()

@@ -161,16 +161,28 @@ namespace DBMS
                     if (dataToInsert.Count != _columns.Length)
                         throw new InsertCommandExcecute($"Inserted data does not match field count in table.");
 
+                    // check data to insert
                     for (int i = 0; i < _columns.Length; i++)
                     {
                         var isValid = checkDataToInsert(_columns[i].Name, dataToInsert[i].Value);
                         if (!isValid)
                             throw new InsertCommandExcecute($"Column [{_columns[i].Name}] does not match for [{dataToInsert[i].Value}] format.");
+                    }
+
+                    for (int i = 0; i < _columns.Length; i++)
+                    {
                         switch (_columns[i].Type)
                         {
                             case 1:
                                 int intValue = Convert.ToInt32(dataToInsert[i].Value);
                                 _fileStream.WriteInt(intValue);
+                                // if has index name write index
+                                if (_columns[i].IndexName?.Length > 0)
+                                {
+                                    var newIndex = new DenseIndex(intValue, lastPosition);
+                                    _logger.Trace($"Записываем индекс для колонки {_columns[i].Name} для значения {intValue}.");
+                                    writeDenseIndex(_columns[i], newIndex);
+                                }
                                 break;
                             case 2:
                                 byte byteValue = Convert.ToByte(dataToInsert[i].Value[0]);
@@ -215,6 +227,8 @@ namespace DBMS
                 _fileStream.SetPosition(0);
                 _fileStream.WriteInt(pos + 4);
                 _fileStream.Close();
+
+
 
             }
             catch (Exception ex)
@@ -357,6 +371,10 @@ namespace DBMS
                         // add into dictionary
                         _logger.Info($"Detected field [{_columns[i].Name}] into conditions.");
                         columnDictionary.Add(colName, i);
+                        if(_columns[i].IndexName?.Length != 0)
+                        {
+
+                        }
                     }
                 }
             }
@@ -459,10 +477,10 @@ namespace DBMS
                 _fileStream.WriteInt(100);
                 // write count of columns in the begining of header file
                 _fileStream.WriteInt(cmd.Columns.Length);
-                var column = new Column();
                 // parse and write columns
                 foreach (var columnInfo in cmd.Columns)
                 {
+                    var column = new Column();
                     column.ParseType(columnInfo);
                     // write length of column name
                     _fileStream.WriteInt(column.Name.Length);
@@ -481,9 +499,10 @@ namespace DBMS
                     // create index file for column
                     if (column.IndexName?.Length > 0)
                     {
-                        _logger.Trace($"Сооздаем индекс файл [{Name}-{column.IndexName}] для колонки {column.Name}");
+                        _logger.Trace($"Создаем индекс файл [{Name}-{column.IndexName}] для колонки {column.Name}");
                         var fs = new FileStream(Path, Database, $"{Name}-{column.IndexName}", FileType.Index);
                         fs.Create();
+                        fs.Open();
                         fs.WriteInt(0);
                         fs.Close();
                     }
@@ -510,15 +529,33 @@ namespace DBMS
 
         private void writeDenseIndex(Column column, DenseIndex index)
         {
+            FileStream fileStream = null;
             try
             {
-                _fileStream = new FileStream(Path, Database, $"{Name}-{column.Name}", FileType.Index);
-                _logger.Trace($"Запись индекса.");
-                _fileStream.WriteByte(index.Removed);
-                _fileStream.WriteInt(index.Size);
-                _fileStream.WriteBytes(index.Value);
-                _fileStream.WriteInt(index.RecordPosition);
+                fileStream = new FileStream(Path, Database, $"{Name}-{column.IndexName}", FileType.Index);
+                fileStream.Open();
+                // read indexes count
+                var count = fileStream.ReadInt();
+                // set position into index file
+                if (count == 0)
+                    fileStream.SetPosition(4);
+                else
+                {
+                    // calculate index weight
+                    var indexWeight = sizeof(int) + index.Size + index.Removed;
+                    fileStream.SetPosition(count * indexWeight);
+                }
+                // write flag
+                fileStream.WriteByte(index.Removed);
+                // write value
+                fileStream.WriteBytes(index.Value);
+                // write position into data file
+                fileStream.WriteInt(index.RecordPosition);
                 _logger.Trace($"Индекс записан.");
+                // update index count in the begining of file
+                fileStream.SetPosition(0);
+                fileStream.WriteInt(++count);
+                fileStream.Close();
             }
             catch (Exception ex)
             {
@@ -527,7 +564,7 @@ namespace DBMS
             finally
             {
                 // close
-                _fileStream?.Close();
+                fileStream?.Close();
             }
 
         }

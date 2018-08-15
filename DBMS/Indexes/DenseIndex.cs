@@ -16,7 +16,8 @@ namespace DBMS.Indexes
         /// <summary>
         /// Index vaule size
         /// </summary>
-        public int Size {
+        public int Size
+        {
             get
             {
                 return Value.Length;
@@ -41,9 +42,15 @@ namespace DBMS.Indexes
         ///// </summary>
         //public int PreviousIndex { get; set; }
 
-        //public DenseIndex()
-        //{
-
-        //}
+        public DenseIndex(int value, int recordPosition)
+        {
+            Value = BitConverter.GetBytes(value);
+            RecordPosition = recordPosition;
+        }
+        public DenseIndex(string value, int recordPosition)
+        {
+            Value = Encoding.ASCII.GetBytes(value);
+            RecordPosition = recordPosition;
+        }
     }
 }

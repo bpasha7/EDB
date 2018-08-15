@@ -83,7 +83,7 @@ namespace DBMS
             var start = _stopwatch.Elapsed;
             var res = table.Select(cmd);
             var executeTime = _stopwatch.Elapsed - start;
-            executeInfo = $"New record was inserted. Execution time: {executeTime}";
+            executeInfo = $"Count: {res.Values.Count}.Execution time: {executeTime}";
             return res;
         }
     }

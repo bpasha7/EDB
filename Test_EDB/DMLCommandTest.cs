@@ -31,6 +31,7 @@ namespace Test_EDB
             }
         }
 
+
         [Theory]
         [InlineData("INSERT INTO test VALUES (1, 'test strinG wiTH UP and down case.')")]
         [InlineData("INSERT INTO test VALUES (2, 'test strinG wiTH UP and down case.', '2345')")]
