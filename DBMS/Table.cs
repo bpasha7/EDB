@@ -185,7 +185,9 @@ namespace DBMS
                                 {
                                     var newIndex = new DenseIndex(intValue, lastPosition);
                                     _logger.Trace($"Записываем индекс для колонки {_columns[i].Name} для значения {intValue}.");
-                                    writeDenseIndex(_columns[i], newIndex);
+                                    var posToInsertIndex = findPositiontoInsertIndex(_columns[i], intValue);
+
+                                    writeDenseIndex(_columns[i], newIndex, posToInsertIndex);
                                 }
                                 break;
                             case 2:
@@ -237,11 +239,12 @@ namespace DBMS
             }
             catch (Exception ex)
             {
+                var msg = ex.Message;
                 if (typeof(InsertCommandExcecute) == ex.GetType())
                 {
                     throw ex as InsertCommandExcecute;
                 }
-                throw new Errors.Error(ex.Message);
+                throw new Errors.Error(msg);
             }
             finally
             {
@@ -553,6 +556,70 @@ namespace DBMS
             }
         }
 
+        private int findPositiontoInsertIndex(Column column, int value)
+        {
+            FileStream fileStream = null;
+            try
+            {
+                fileStream = new FileStream(Path, Database, $"{Name}-{column.IndexName}", FileType.Index);
+                fileStream.Open();
+                // read indexes count
+                var count = fileStream.ReadInt();
+                // return first position if no indexes
+                if (count == 0)
+                    return 4;
+                // calculate index weight
+                var indexWeight = sizeof(int) + column.Size + sizeof(byte);
+
+                int first = 0, last = count;
+
+                int min = Int32.MaxValue, minPos = count, intValue = 0, curPos = 0;
+                while(first < last)
+                {
+                    var mid = first + (last - first) / 2;
+                    curPos = 4 + mid * indexWeight;
+                    fileStream.SetPosition(curPos);
+#warning not depends for deleted indexes
+                    // skip flag
+                    fileStream.ReadByte();
+                    // read value
+                    intValue = fileStream.ReadInt();
+                    // save pos and min diference value
+                    var abs = Math.Abs(value - intValue);
+                    if (abs < min)
+                    {
+                        min = abs;
+                        minPos = curPos;
+                    }
+                    if (value <= intValue)
+                    {
+                        last = mid;
+                    }
+                    else
+                    {
+                        first = mid + 1;
+                    }
+                }
+                curPos = 4 + last * indexWeight;
+                fileStream.ReadByte();
+                intValue = fileStream.ReadInt();
+                if (Math.Abs(value - intValue) < min)
+                {
+                    minPos = curPos;
+                }
+                return minPos;
+            }
+            catch (Exception ex)
+            {
+                throw new Error($"{ex}");
+            }
+            finally
+            {
+                // close
+                fileStream?.Close();
+            }
+        }
+
         private IList<int> readPosition(Column column, Condition condition)
         {
             var positions = new List<int>();
@@ -620,32 +687,43 @@ namespace DBMS
             }
         }
 
-        private void writeDenseIndex(Column column, DenseIndex index)
+        private void writeDenseIndex(Column column, DenseIndex index, int position)
         {
             FileStream fileStream = null;
             try
             {
                 fileStream = new FileStream(Path, Database, $"{Name}-{column.IndexName}", FileType.Index);
                 fileStream.Open();
-                // read indexes count
-                var count = fileStream.ReadInt();
                 // set position into index file
-                if (count == 0)
-                    fileStream.SetPosition(4);
-                else
-                {
-                    // calculate index weight
-                    var indexWeight = sizeof(int) + index.Size + sizeof(byte);
-                    fileStream.SetPosition(4 + count * indexWeight);
-                }
+                fileStream.SetPosition(position);
+                var temp = fileStream.CutToEnd(position);
+                var indexWeight = sizeof(int) + index.Size + sizeof(byte);
+
+                //fileStream.SetLength(temp.Length + indexWeight);
+
+                //if (count == 0)
+                //{
+                //    fileStream.SetPosition(4);
+                //}
+                //else
+                //{
+                //    // calculate index weight
+                //    var indexWeight = sizeof(int) + index.Size + sizeof(byte);
+                //    fileStream.SetPosition(4 + count * indexWeight);
+                //}
                 // write flag
                 fileStream.WriteByte(index.Removed);
                 // write value
                 fileStream.WriteBytes(index.Value);
                 // write position into data file
                 fileStream.WriteInt(index.RecordPosition);
+                if (temp != null)
+                    fileStream.WriteBytes(temp);
                 _logger.Trace($"Индекс записан.");
                 // update index count in the begining of file
+                fileStream.SetPosition(0);
+                // read indexes count
+                var count = fileStream.ReadInt();
                 fileStream.SetPosition(0);
                 fileStream.WriteInt(++count);
                 fileStream.Close();

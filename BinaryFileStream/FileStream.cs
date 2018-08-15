@@ -85,6 +85,23 @@ namespace BinaryFileStream
             _stream?.Close();
             _blockedDatabaseTables.Remove(_path);
         }
+        
+        public byte[] CutToEnd(int position)
+        {
+            var size = Convert.ToInt32(_stream.Length - position);
+            if (size == 0)
+                return null;
+            var bytes = new byte[size];
+            _stream?.Read(bytes, position, size - 1);
+            //_stream?.SetLength(position);
+            return bytes;
+        }
+
+        public void SetLength(int length)
+        {
+            _stream?.SetLength(length);
+        }
+
         /// <summary>
         /// Generate path depends on extention
         /// </summary>
