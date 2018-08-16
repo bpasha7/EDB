@@ -52,7 +52,7 @@ namespace Test_EDB.Integration_test
             var t = new int[] { 5, 10, 1, 6, 4 };
             for (int i = 0; i < t.Length; i++)
             {
-                //var n = rnd.Next(0, 50);
+                var n = rnd.Next(0, 50);
 
                 var p = findPositiontoInsertIndex(fileStream, t[i]);
                 var temp = fileStream.CutToEnd(p);
@@ -91,9 +91,10 @@ namespace Test_EDB.Integration_test
 
             int first = 0, last = count;
 
-            bool right = false, left = false;
+            //bool right = false, left = false;
 
-            int min = Int32.MaxValue, minPos = count, intValue = 0, curPos = 0;
+            //int min = Int32.MaxValue, minPos = count, 
+            int intValue = 0, curPos = 4;
             while (first < last)
             {
                 var mid = first + (last - first) / 2;
@@ -102,34 +103,23 @@ namespace Test_EDB.Integration_test
                 // read value
                 intValue = fileStream.ReadInt();
                 // save pos and min diference value
-                var abs = Math.Abs(value - intValue);
-                if (abs <= min)
-                {
-                    min = abs;
-                    minPos = curPos;
-                }
                 if (value <= intValue)
                 {
                     last = mid;
-                    left = true;
-                    if (right)
-                        break;
                 }
                 else
                 {
                     first = mid + 1;
-                    right = true;
-                    if (left)
-                        break;
                 }
             }
-            curPos = 4 + last * 4;
-            intValue = fileStream.ReadInt();
-            if (Math.Abs(value - intValue) < min)
-            {
-                minPos = curPos;
-            }
-            return minPos;
+            return curPos;
+            //curPos = 4 + last * 4;
+            //intValue = fileStream.ReadInt();
+            //if (intValue == value)
+            //{
+            //    minPos = curPos;
+            //}
+            //return minPos;
         }
 
 
