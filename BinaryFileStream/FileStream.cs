@@ -92,7 +92,8 @@ namespace BinaryFileStream
             if (size == 0)
                 return null;
             var bytes = new byte[size];
-            _stream?.Read(bytes, position, size - 1);
+            SetPosition(position);
+            _stream?.Read(bytes, 0, size);
             //_stream?.SetLength(position);
             return bytes;
         }

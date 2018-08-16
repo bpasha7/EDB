@@ -1,4 +1,6 @@
-﻿using DBMS;
+﻿using BinaryFileStream;
+using DBMS;
+using DBMS.Indexes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,6 +36,102 @@ namespace Test_EDB.Integration_test
                 db.InsertIntoTable(query);
             }
         }
+
+        [Fact]
+        public void CheckSortingIndexTableTest()
+        {
+            string path = "C:\\temp\\", name = "test";
+
+            var fileStream = new FileStream(path, "test", $"tt-IND_1", FileType.Index);
+            var indexes = new List<int>();
+            fileStream?.Create();
+            fileStream?.Open();
+            fileStream?.SetPosition(0);
+            fileStream?.WriteInt(0);
+            var rnd = new Random();
+            var t = new int[] { 5, 10, 1, 6, 4 };
+            for (int i = 0; i < t.Length; i++)
+            {
+                //var n = rnd.Next(0, 50);
+
+                var p = findPositiontoInsertIndex(fileStream, t[i]);
+                var temp = fileStream.CutToEnd(p);
+                fileStream.SetPosition(p);
+                fileStream?.WriteInt(t[i]);
+
+                if (temp != null)
+                    fileStream.WriteBytes(temp);
+
+                fileStream?.SetPosition(0);
+                var cnt = fileStream.ReadInt();
+                fileStream?.SetPosition(0);
+                fileStream?.WriteInt(++cnt);
+            }
+
+            fileStream?.SetPosition(0);
+
+            var count = fileStream?.ReadInt();
+            for (int i = 0; i < count; i++)
+            {
+                var val = fileStream.ReadInt();
+                //var pos = fileStream.ReadInt();
+                //var idx = new DenseIndex(val, pos);
+                indexes.Add(val);
+            }
+            fileStream?.Close();
+            fileStream?.Delete();
+        }
+
+        private int findPositiontoInsertIndex(FileStream fileStream, int value)
+        {
+            fileStream.Open();
+            // read indexes count
+            var count = fileStream.ReadInt();
+            // return first position if no indexes
+
+            int first = 0, last = count;
+
+            bool right = false, left = false;
+
+            int min = Int32.MaxValue, minPos = count, intValue = 0, curPos = 0;
+            while (first < last)
+            {
+                var mid = first + (last - first) / 2;
+                curPos = 4 + mid * 4;
+                fileStream.SetPosition(curPos);
+                // read value
+                intValue = fileStream.ReadInt();
+                // save pos and min diference value
+                var abs = Math.Abs(value - intValue);
+                if (abs <= min)
+                {
+                    min = abs;
+                    minPos = curPos;
+                }
+                if (value <= intValue)
+                {
+                    last = mid;
+                    left = true;
+                    if (right)
+                        break;
+                }
+                else
+                {
+                    first = mid + 1;
+                    right = true;
+                    if (left)
+                        break;
+                }
+            }
+            curPos = 4 + last * 4;
+            intValue = fileStream.ReadInt();
+            if (Math.Abs(value - intValue) < min)
+            {
+                minPos = curPos;
+            }
+            return minPos;
+        }
+
 
         private static string randomString(int length, Random random)
         {

@@ -698,20 +698,8 @@ namespace DBMS
                 fileStream.SetPosition(position);
                 var temp = fileStream.CutToEnd(position);
                 var indexWeight = sizeof(int) + index.Size + sizeof(byte);
+                fileStream.SetPosition(position);
 
-                //fileStream.SetLength(temp.Length + indexWeight);
-
-                //if (count == 0)
-                //{
-                //    fileStream.SetPosition(4);
-                //}
-                //else
-                //{
-                //    // calculate index weight
-                //    var indexWeight = sizeof(int) + index.Size + sizeof(byte);
-                //    fileStream.SetPosition(4 + count * indexWeight);
-                //}
-                // write flag
                 fileStream.WriteByte(index.Removed);
                 // write value
                 fileStream.WriteBytes(index.Value);
