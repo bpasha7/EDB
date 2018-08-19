@@ -5,6 +5,26 @@ using System.Text;
 namespace DBMS.Indexes
 {
     /// <summary>
+    /// Positions of headers into Dense Index File
+    /// </summary>
+    public enum DenseIndexFileScheme : int
+    {
+        /// <summary>
+        /// Index count into file
+        /// </summary>
+        Count = 0,
+    }
+    /// <summary>
+    /// Size of headers into Dense Index File
+    /// </summary>
+    public enum DenseIndexFileSchemeSize : int
+    {
+        /// <summary>
+        /// Index count into file
+        /// </summary>
+        Count = 4,
+    }
+    /// <summary>
     /// Dense index
     /// </summary>
     public class DenseIndex

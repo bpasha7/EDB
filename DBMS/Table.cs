@@ -11,6 +11,16 @@ using System.Text;
 
 namespace DBMS
 {
+    /// <summary>
+    /// Table headers
+    /// </summary>
+    public enum TableScheme : int
+    {
+
+    }
+    /// <summary>
+    /// Table of database
+    /// </summary>
     public class Table : IDisposable
     {
         /// <summary>
@@ -67,7 +77,7 @@ namespace DBMS
                     _columns[i].PrimaryKey = _fileStream.ReadByte();
                     // read index name
                     var indexNameLength = _fileStream.ReadInt();
-                    if(indexNameLength > 0)
+                    if (indexNameLength > 0)
                         _columns[i].IndexName = _fileStream.ReadText(indexNameLength);
                     // set offset in record
                     _columns[i].Offset = i == 0 ? 0 : _columns[i - 1].Size;
@@ -210,7 +220,7 @@ namespace DBMS
                                 var dateString = dataToInsert[i].Value
                                     .Substring(1, dataToInsert[i].Value.Length - 2);
                                 var convertResult = DateTime.TryParse(dateString, out date);
-                                if(!convertResult)
+                                if (!convertResult)
                                     throw new InsertCommandExcecute($"Value for column [{_columns[i].Name}] has not correct datetime format.");
                                 _fileStream.WriteDate(date.Ticks);
                                 break;
@@ -377,7 +387,7 @@ namespace DBMS
                         // add into dictionary
                         _logger.Info($"Detected field [{_columns[i].Name}] into conditions.");
                         columnDictionary.Add(colName, i);
-                        if(_columns[i].IndexName?.Length > 0)
+                        if (_columns[i].IndexName?.Length > 0)
                         {
                             positions = readPosition(_columns[i], fieldCondition);
                         }
@@ -564,33 +574,28 @@ namespace DBMS
                 fileStream = new FileStream(Path, Database, $"{Name}-{column.IndexName}", FileType.Index);
                 fileStream.Open();
                 // read indexes count
+                fileStream.SetPosition((long)DenseIndexFileScheme.Count);
+                var headers = (int)DenseIndexFileSchemeSize.Count;
                 var count = fileStream.ReadInt();
                 // return first position if no indexes
                 if (count == 0)
-                    return 4;
+                    return headers;
                 // calculate index weight
                 var indexWeight = sizeof(int) + column.Size + sizeof(byte);
 
                 int first = 0, last = count;
 
-                int min = Int32.MaxValue, minPos = count, intValue = 0, curPos = 0;
-                while(first < last)
+                int intValue = 0, curPos = 0;
+                while (first < last)
                 {
                     var mid = first + (last - first) / 2;
-                    curPos = 4 + mid * indexWeight;
+                    curPos = headers + mid * indexWeight;
                     fileStream.SetPosition(curPos);
 #warning not depends for deleted indexes
                     // skip flag
                     fileStream.ReadByte();
                     // read value
                     intValue = fileStream.ReadInt();
-                    // save pos and min diference value
-                    var abs = Math.Abs(value - intValue);
-                    if (abs < min)
-                    {
-                        min = abs;
-                        minPos = curPos;
-                    }
                     if (value <= intValue)
                     {
                         last = mid;
@@ -600,14 +605,7 @@ namespace DBMS
                         first = mid + 1;
                     }
                 }
-                curPos = 4 + last * indexWeight;
-                fileStream.ReadByte();
-                intValue = fileStream.ReadInt();
-                if (Math.Abs(value - intValue) < min)
-                {
-                    minPos = curPos;
-                }
-                return minPos;
+                return headers + last * indexWeight;
             }
             catch (Exception ex)
             {
@@ -628,6 +626,8 @@ namespace DBMS
             {
                 fileStream = new FileStream(Path, Database, $"{Name}-{column.IndexName}", FileType.Index);
                 fileStream.Open();
+                fileStream.SetPosition((long)DenseIndexFileScheme.Count);
+                var headers = (int)DenseIndexFileSchemeSize.Count;
                 // read indexes count
                 var count = fileStream.ReadInt();
                 // calculate index weight
@@ -636,7 +636,7 @@ namespace DBMS
                 for (int i = 0; i < count; i++)
                 {
                     // set position into index file
-                    fileStream.SetPosition(4 + i * indexWeight);
+                    fileStream.SetPosition(headers + i * indexWeight);
                     // write flag
                     var isDeleted = fileStream.ReadByte();
                     if (isDeleted == 1)
@@ -697,7 +697,8 @@ namespace DBMS
                 // set position into index file
                 fileStream.SetPosition(position);
                 var temp = fileStream.CutToEnd(position);
-                var indexWeight = sizeof(int) + index.Size + sizeof(byte);
+                var headers = (int)DenseIndexFileSchemeSize.Count;
+                var indexWeight = headers + index.Size + sizeof(byte);
                 fileStream.SetPosition(position);
 
                 fileStream.WriteByte(index.Removed);

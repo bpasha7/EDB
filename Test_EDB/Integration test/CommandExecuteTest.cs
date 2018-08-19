@@ -87,13 +87,7 @@ namespace Test_EDB.Integration_test
             fileStream.Open();
             // read indexes count
             var count = fileStream.ReadInt();
-            // return first position if no indexes
-
             int first = 0, last = count;
-
-            //bool right = false, left = false;
-
-            //int min = Int32.MaxValue, minPos = count, 
             int intValue = 0, curPos = 4;
             while (first < last)
             {
@@ -114,13 +108,6 @@ namespace Test_EDB.Integration_test
             }
             // * 4 size of data int
             return last * 4 + 4;
-            //curPos = 4 + last * 4;
-            //intValue = fileStream.ReadInt();
-            //if (intValue == value)
-            //{
-            //    minPos = curPos;
-            //}
-            //return minPos;
         }
 
 
