@@ -50,14 +50,14 @@ namespace Test_EDB.Integration_test
             fileStream?.WriteInt(0);
             var rnd = new Random();
             var t = new int[] { 5, 10, 1, 6, 4 };
-            for (int i = 0; i < t.Length; i++)
+            for (int i = 0; i < 20; i++)
             {
                 var n = rnd.Next(0, 50);
 
-                var p = findPositiontoInsertIndex(fileStream, t[i]);
+                var p = findPositiontoInsertIndex(fileStream, n);
                 var temp = fileStream.CutToEnd(p);
                 fileStream.SetPosition(p);
-                fileStream?.WriteInt(t[i]);
+                fileStream?.WriteInt(n);
 
                 if (temp != null)
                     fileStream.WriteBytes(temp);
@@ -112,7 +112,8 @@ namespace Test_EDB.Integration_test
                     first = mid + 1;
                 }
             }
-            return curPos;
+            // * 4 size of data int
+            return last * 4 + 4;
             //curPos = 4 + last * 4;
             //intValue = fileStream.ReadInt();
             //if (intValue == value)
