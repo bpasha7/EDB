@@ -29,12 +29,20 @@ namespace Test_EDB.Integration_test
         {
             string path = "C:\\temp\\", name = "test";
             var db = new Database(path, name);
+            //var db2 = new Database(path, name+"1");
             for (int i = 0; i < 1000; i++)
             {
                 var rnd = new Random();
-                var query = $"insert into test Values ({rnd.Next(-1000, 1000)}, '{randomString(10, rnd)}', {rnd.Next(0, 1)})";
+                var query = $"insert into test1 Values ({rnd.Next(-1000, 1000)}, '{randomString(10, rnd)}', {rnd.Next(0, 1)})";
                 db.InsertIntoTable(query);
+
             }
+            //for (int i = 0; i < 1000; i++)
+            //{
+            //    var rnd = new Random();
+            //    var query = $"insert into test1 Values ({rnd.Next(-1000, 1000)}, '{randomString(10, rnd)}', {rnd.Next(0, 1)})";
+            //    db2.InsertIntoTable(query);
+            //}
         }
 
         [Fact]
@@ -49,15 +57,15 @@ namespace Test_EDB.Integration_test
             fileStream?.SetPosition(0);
             fileStream?.WriteInt(0);
             var rnd = new Random();
-            var t = new int[] { 5, 10, 1, 6, 4 };
-            for (int i = 0; i < 20; i++)
+            var t = new int[] { 5, 10, 1, 6, 4, 1, 1, 5, 5, 5 };
+            for (int i = 0; i < t.Length; i++)
             {
-                var n = rnd.Next(0, 50);
+                //var n = rnd.Next(0, 50);
 
-                var p = findPositiontoInsertIndex(fileStream, n);
+                var p = findPositiontoInsertIndex(fileStream, t[i]);
                 var temp = fileStream.CutToEnd(p);
                 fileStream.SetPosition(p);
-                fileStream?.WriteInt(n);
+                fileStream?.WriteInt(t[i]);
 
                 if (temp != null)
                     fileStream.WriteBytes(temp);
@@ -70,14 +78,16 @@ namespace Test_EDB.Integration_test
 
             fileStream?.SetPosition(0);
 
-            var count = fileStream?.ReadInt();
-            for (int i = 0; i < count; i++)
-            {
-                var val = fileStream.ReadInt();
-                //var pos = fileStream.ReadInt();
-                //var idx = new DenseIndex(val, pos);
-                indexes.Add(val);
-            }
+            var tt = findPositiontoInsertIndex(fileStream, 1);
+
+            //var count = fileStream?.ReadInt();
+            //for (int i = 0; i < count; i++)
+            //{
+            //    var val = fileStream.ReadInt();
+            //    //var pos = fileStream.ReadInt();
+            //    //var idx = new DenseIndex(val, pos);
+            //    indexes.Add(val);
+            //}
             fileStream?.Close();
             fileStream?.Delete();
         }

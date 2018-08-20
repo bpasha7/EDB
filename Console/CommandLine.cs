@@ -58,9 +58,9 @@ namespace Console
             printLine();
             var sb = new StringBuilder("|");
             // print each columne name
-            foreach (var item in resultData.Headers)
+            for(var i = 0; i < resultData.Headers.Count; i++)
             {
-                sb.Append(alignCentre(item, with));
+                sb.Append(alignCentre($"{ resultData.Headers[i]} [{ resultData.Types[i]}]", with));
                 sb.Append("|");
             }
             WriteInfo(sb.ToString());

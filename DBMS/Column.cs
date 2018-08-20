@@ -125,5 +125,25 @@ namespace DBMS
                     throw new ColumnError($"'{splited[1]}' is not supported type. ");
             }
         }
+        public string GetTypeName()
+        {
+            switch (_type)
+            {
+                // INTEGER type
+                case 1:
+                    return "INT";
+                // BIT type
+                case 2:
+                    return "BIT";
+                // VARCHAR(*) type
+                case 3:
+                    return $"VARCHAR({_size})";
+                // DATETIME type
+                case 4:
+                    return "DATETIME";
+                default:
+                    return "";
+            }
+        }
     }
 }
