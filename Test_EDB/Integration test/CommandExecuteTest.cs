@@ -11,6 +11,44 @@ namespace Test_EDB.Integration_test
 {
     public class CommandExecuteTest
     {
+
+        [Fact]
+        public void CreateAndInsertTest()
+        {
+            string path = "C:\\temp\\", name = "test";
+            var db = new Database(path, name);
+            var createQuery = $"create table stud (Id int, Name varchar(100), Flag bit, Date datetime)";
+            db.CreateTable(createQuery);
+            for (int i = 0; i < 10000; i++)
+            {
+                var rnd = new Random();
+                var query = $"insert into stud Values ({rnd.Next(-1000, 1000)}, '{randomString(10, rnd)}', {rnd.Next(0, 1)}, '{RandomDay(rnd):G}')";
+                db.InsertIntoTable(query);
+            }
+        }
+
+        [Fact]
+        public void CreateAndInsertWithIndexTest()
+        {
+            string path = "C:\\temp\\", name = "test";
+            var db = new Database(path, name);
+            var createQuery = $"create table studi (Id int index IND_1, Name varchar(100), Flag bit, Date datetime)";
+            db.CreateTable(createQuery);
+            for (int i = 0; i < 10000; i++)
+            {
+                var rnd = new Random();
+                var query = $"insert into studi Values ({rnd.Next(-1000, 1000)}, '{randomString(10, rnd)}', {rnd.Next(0, 1)}, '{RandomDay(rnd):G}')";
+                db.InsertIntoTable(query);
+            }
+        }
+
+        DateTime RandomDay(Random rnd)
+        {
+            DateTime start = new DateTime(1995, 1, 1);
+            int range = (DateTime.Today - start).Days;
+            return start.AddDays(rnd.Next(range));
+        }
+
         [Fact]
         public void InsertTest()
         {

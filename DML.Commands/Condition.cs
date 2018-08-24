@@ -22,12 +22,49 @@ namespace DML.Commands
             Operator = conditionParts[1];
         }
         /// <summary>
+        /// Get Operator if one operand is columns. 
+        /// Operator can be turned around, because columns operands can be first or second
+        /// </summary>
+        /// <param name="columnName">Columns name</param>
+        /// <returns>Operator</returns>
+        //public string GetOperatorIfColumn(string columnName)
+        //{
+        //    if()
+        //}
+
+        /// <summary>
         /// Compare two numbers
         /// </summary>
         /// <param name="operand1">First number</param>
         /// <param name="operand2">Second number</param>
         /// <returns>Result of comparison</returns>
         private bool operate(int operand1, int operand2)
+        {
+            switch (Operator)
+            {
+                case ">":
+                    return operand1 > operand2;
+                case ">=":
+                    return operand1 >= operand2;
+                case "<":
+                    return operand1 < operand2;
+                case "<=":
+                    return operand1 <= operand2;
+                case "=":
+                    return operand1 == operand2;
+                case "<>":
+                    return operand1 != operand2;
+                default:
+                    return false;
+            }
+        }
+        /// <summary>
+        /// Compare two long numbers
+        /// </summary>
+        /// <param name="operand1">First number</param>
+        /// <param name="operand2">Second number</param>
+        /// <returns>Result of comparison</returns>
+        private bool operate(DateTime operand1, DateTime operand2)
         {
             switch (Operator)
             {
@@ -105,6 +142,32 @@ namespace DML.Commands
             var secondOperandIndex = fieldOperandIndex == 0 ? 1 : 0;
             // convert value
             var nextOperandValue = Convert.ToInt32(Operands[secondOperandIndex]);
+            // compare
+            if ((int)fieldOperandIndex < secondOperandIndex)
+            {
+                return operate(val, nextOperandValue);
+            }
+            else
+            {
+                return operate(nextOperandValue, val);
+            }
+        }
+        /// <summary>
+        /// Operate condition for date field
+        /// </summary>
+        /// <param name="fieldName">Field name</param>
+        /// <param name="val">Field value</param>
+        /// <returns>Result of operation</returns>
+        public bool Operate(string fieldName, DateTime val)
+        {
+            // find index of field name into operands list if exist
+            var fieldOperandIndex = getOperandIndex(fieldName);
+            if (fieldOperandIndex == null)
+                return true;
+            // set index of value operator
+            var secondOperandIndex = fieldOperandIndex == 0 ? 1 : 0;
+            // convert value
+            var nextOperandValue = Convert.ToDateTime(Operands[secondOperandIndex]);
             // compare
             if ((int)fieldOperandIndex < secondOperandIndex)
             {

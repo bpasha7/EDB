@@ -80,7 +80,7 @@ namespace DBMS
                     if (indexNameLength > 0)
                         _columns[i].IndexName = _fileStream.ReadText(indexNameLength);
                     // set offset in record
-                    _columns[i].Offset = i == 0 ? 0 : _columns[i - 1].Size;
+                    _columns[i].Offset = i == 0 ? 0 : _columns[i - 1].Offset + _columns[i - 1].Size;
                 }
 
             }
@@ -128,6 +128,13 @@ namespace DBMS
                 case 3:
                     // string value must have single quotes at start and end of it-self
                     return (value[0] == '\'' && value[value.Length - 1] == '\'') ? true : false;
+                case 4:
+                    if (value[0] == '\'' && value[value.Length - 1] == '\'')
+                    {
+                        DateTime resDate = DateTime.MinValue;
+                        return DateTime.TryParse(value.Replace("'", ""), out resDate);
+                    }
+                    return false;
                 default:
                     return false;
             };
@@ -279,12 +286,15 @@ namespace DBMS
         /// <returns>Array of read objects from current position</returns>
         private object[] readRecord()
         {
+            //get block position
+            var pos = (long)_fileStream.GetPosition();
             var columns = _columns.Where(col => col.Visible).ToArray();
             var values = new object[columns.Length];
             //var current = 0;
             // cycle by colmns to read
             for (int j = 0; j < columns.Length; j++)
             {
+                _fileStream.SetPosition(pos + columns[j].Offset);
                 switch (columns[j].Type)
                 {
                     case 1:
@@ -353,6 +363,12 @@ namespace DBMS
                             res = conditions[0].Operate(col.Name, val);
                             return res;
                         }
+                    case 4:
+                        {
+                            var val = Convert.ToDateTime(recodValues[kV.Value]);// Convert.ToInt64(recodValues[kV.Value]);
+                            res = conditions[0].Operate(col.Name, val);
+                            return res;
+                        }
                     default:
                         return false;
                 }
@@ -395,65 +411,68 @@ namespace DBMS
                     }
                 }
             }
-            _fileStream = new FileStream(Path, Database, Name);
-            _fileStream.Open();
-            if (positions == null)
+            //_fileStream = new FileStream(Path, Database, Name);
+            using (_fileStream = new FileStream(Path, Database, Name))
             {
-                _fileStream.SetPosition(0);
-                // read table records count
-                var recordsCount = _fileStream.ReadInt() / getRecordSize();
-                _logger?.Trace($"Получение числа записей в таблице {Name}: {recordsCount}.");
-
-                // cycle by records to read
-                for (int i = 0; i < recordsCount; i++)
+                _fileStream.Open();
+                if (positions == null)
                 {
-                    // flag to not read 
-                    //var skip = false;
-                    _logger.Trace($"Read record {i + 1}.");
-                    var record = readRecord();
-                    // check condtions
-                    if (checkConditions(cmd.Conditions, cmd.ConditionsOperators, columnDictionary, record))
+                    _fileStream.SetPosition(0);
+                    // read table records count
+                    var recordsCount = _fileStream.ReadInt() / getRecordSize();
+                    _logger?.Trace($"Получение числа записей в таблице {Name}: {recordsCount}.");
+
+                    // cycle by records to read
+                    for (int i = 0; i < recordsCount; i++)
                     {
+                        // flag to not read 
+                        //var skip = false;
+                        _logger.Trace($"Read record {i + 1}.");
+                        var record = readRecord();
+                        // check condtions
+                        if (checkConditions(cmd.Conditions, cmd.ConditionsOperators, columnDictionary, record))
+                        {
+                            resultData.Values.Add(record);
+                            _logger.Trace($"Record {i + 1} was inserted into result data.");
+                        }
+                        else
+                        {
+                            _logger.Trace($"Record {i + 1} was not inserted into result data.");
+
+                        }
+                        _logger.Trace($"------------------------------------.");
+
+                    }
+                }
+                else
+                {
+                    // cycle by records to read
+                    for (int i = 0; i < positions.Count; i++)
+                    {
+                        // flag to not read 
+                        //var skip = false;
+                        _fileStream.SetPosition(positions[i]);
+
+                        _logger.Trace($"Read record {i + 1}.");
+                        var record = readRecord();
                         resultData.Values.Add(record);
-                        _logger.Trace($"Record {i + 1} was inserted into result data.");
-                    }
-                    else
-                    {
-                        _logger.Trace($"Record {i + 1} was not inserted into result data.");
+                        // check condtions
+                        //if (checkConditions(cmd.Conditions, cmd.ConditionsOperators, columnDictionary, record))
+                        //{
+                        //    resultData.Values.Add(record);
+                        //    _logger.Trace($"Record {i + 1} was inserted into result data.");
+                        //}
+                        //else
+                        //{
+                        //    _logger.Trace($"Record {i + 1} was not inserted into result data.");
+
+                        //}
+                        _logger.Trace($"------------------------------------.");
 
                     }
-                    _logger.Trace($"------------------------------------.");
-
                 }
+                _fileStream.Close();
             }
-            else
-            {
-                // cycle by records to read
-                for (int i = 0; i < positions.Count; i++)
-                {
-                    // flag to not read 
-                    //var skip = false;
-                    _fileStream.SetPosition(positions[i]);
-
-                    _logger.Trace($"Read record {i + 1}.");
-                    var record = readRecord();
-                    resultData.Values.Add(record);
-                    // check condtions
-                    //if (checkConditions(cmd.Conditions, cmd.ConditionsOperators, columnDictionary, record))
-                    //{
-                    //    resultData.Values.Add(record);
-                    //    _logger.Trace($"Record {i + 1} was inserted into result data.");
-                    //}
-                    //else
-                    //{
-                    //    _logger.Trace($"Record {i + 1} was not inserted into result data.");
-
-                    //}
-                    _logger.Trace($"------------------------------------.");
-
-                }
-            }
-            _fileStream.Close();
         }
         /// <summary>
         /// Select data from table
@@ -473,6 +492,8 @@ namespace DBMS
                 {
                     resultData.Headers.Add(column.Name);
                     resultData.Types.Add(column.GetTypeName());
+                    // set flag to read column
+                    column.Visible = true;
                 }
                 _logger?.Trace($"Добавление названия полей в структуру ответа.");
             }
@@ -627,70 +648,70 @@ namespace DBMS
             FileStream fileStream = null;
             try
             {
-                //fileStream = new FileStream(Path, Database, $"{Name}-{column.IndexName}", FileType.Index);
-                //fileStream.Open();
-                //fileStream.SetPosition((long)DenseIndexFileScheme.Count);
-                //var headers = (int)DenseIndexFileSchemeSize.Count;
-                //// read indexes count
-                //var count = fileStream.ReadInt();
-                //// calculate index weight
-                //var indexWeight = sizeof(int) + column.Size + sizeof(byte);
+                fileStream = new FileStream(Path, Database, $"{Name}-{column.IndexName}", FileType.Index);
+                fileStream.Open();
+                fileStream.SetPosition((long)DenseIndexFileScheme.Count);
+                var headers = (int)DenseIndexFileSchemeSize.Count;
+                // read indexes count
+                var count = fileStream.ReadInt();
+                // calculate index weight
+                var indexWeight = sizeof(int) + column.Size + sizeof(byte);
 
-                if(column.Type == 1)
+                //if (column.Type == 1)
+                //{
+                //    var val = condition.Operands.Where(c => c.ToLower() != column.Name.ToLower()).SingleOrDefault();
+                //    if (val == null)
+                //        throw new SelectCommandExcecute("Can not detect operands for condition");
+                //    var intVal = Convert.ToInt32(val);
+                //    var p = findPositiontoInsertIndex(column, intVal);
+                //    switch (condition.Operator)
+                //    {
+                //        case ">":
+
+                //        default:
+                //            break;
+                //    }
+                //}
+                for (int i = 0; i < count; i++)
                 {
-                    var val = condition.Operands.Where(c => c.ToLower() != column.Name.ToLower()).SingleOrDefault();
-                    if (val == null)
-                        throw new SelectCommandExcecute("Can not detect operands for condition");
-                    var intVal = Convert.ToInt32(val);
-                    var p = findPositiontoInsertIndex(column, intVal);
-                    switch (condition.Operator)
+                    // set position into index file
+                    fileStream.SetPosition(headers + i * indexWeight);
+                    // write flag
+                    var isDeleted = fileStream.ReadByte();
+                    if (isDeleted == 1)
+                        continue;
+                    bool res = false;
+                    switch (column.Type)
                     {
-                        case ">":
-
+                        case 1:
+                            {
+                                var val = fileStream.ReadInt();
+                                res = condition.Operate(column.Name, val);
+                                break;
+                            }
+#warning not release filter by bit index
+                        //case 2:
+                        //    {
+                        //        var val = Convert.ToInt32(recodValues[kV.Value]);
+                        //        res = conditions[0].Operate(col.Name, val);
+                        //    }
+                        case 3:
+                            {
+                                var val = fileStream.ReadText(column.Size).TrimStart();
+                                res = condition.Operate(column.Name, val);
+                                break;
+                            }
                         default:
+                            res = false;
                             break;
                     }
+                    // if no result
+                    if (!res)
+                        continue;
+                    // read position
+                    var position = fileStream.ReadInt();
+                    positions.Add(position);
                 }
-//                for (int i = 0; i < count; i++)
-//                {
-//                    // set position into index file
-//                    fileStream.SetPosition(headers + i * indexWeight);
-//                    // write flag
-//                    var isDeleted = fileStream.ReadByte();
-//                    if (isDeleted == 1)
-//                        continue;
-//                    bool res = false;
-//                    switch (column.Type)
-//                    {
-//                        case 1:
-//                            {
-//                                var val = fileStream.ReadInt();
-//                                res = condition.Operate(column.Name, val);
-//                                break;
-//                            }
-//#warning not release filter by bit index
-//                        //case 2:
-//                        //    {
-//                        //        var val = Convert.ToInt32(recodValues[kV.Value]);
-//                        //        res = conditions[0].Operate(col.Name, val);
-//                        //    }
-//                        case 3:
-//                            {
-//                                var val = fileStream.ReadText(column.Size).TrimStart();
-//                                res = condition.Operate(column.Name, val);
-//                                break;
-//                            }
-//                        default:
-//                            res = false;
-//                            break;
-//                    }
-//                    // if no result
-//                    if (!res)
-//                        continue;
-//                    // read position
-//                    var position = fileStream.ReadInt();
-//                    positions.Add(position);
-//                }
                 fileStream.Close();
                 return positions;
             }
