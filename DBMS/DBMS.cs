@@ -10,6 +10,9 @@ using Settings;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading.Tasks;
 
 namespace DBMS
 {
@@ -52,7 +55,8 @@ namespace DBMS
             CommandLine.Location = "EDB";
             //CommandLine.WriteError(_settings.Authors);
             _stopwatch.Start();
-            ReadCommands();
+            Listen();
+            //ReadCommands();
         }
         /// <summary>
         /// Change data base
@@ -62,7 +66,7 @@ namespace DBMS
         {
             try
             {
-                if(databaseName == null)
+                if (databaseName == null)
                 {
                     _currentDatabase = null;
                     return;
@@ -86,93 +90,163 @@ namespace DBMS
             }
             finally
             {
-                if(_currentDatabase == null)
+                if (_currentDatabase == null)
                     CommandLine.Location = "EDB";
+            }
+        }
+        #region TCP
+        private TcpListener _listener;
+        public void Listen()
+        {
+            _listener = new TcpListener(IPAddress.Parse("127.0.0.1"), 4444);
+            //_semaphore 
+            var task = new Task(() =>
+            {
+                _listener.Start();
+                while (true)
+                {
+                    TcpClient client = _listener.AcceptTcpClient();
+                    NetworkStream ns = client.GetStream();
+                    try
+                    {
+                        var clientTask = new Task(() =>
+                        {
+
+                            byte[] bytes = null;
+                            if (ns.CanRead)
+                            {
+                                //получаем длину строки int
+                                bytes = new byte[4];
+                                ns.Read(bytes, 0, 4);
+                            }
+                            var length = BitConverter.ToInt32(bytes, 0);
+                            if (ns.CanRead)
+                            {
+                                //поулчаем строку
+                                bytes = new byte[length];
+                                ns.Read(bytes, 0, length);
+                            }
+                            var line = System.Text.ASCIIEncoding.UTF8.GetString(bytes, 0, length);
+
+                            ReadCommand(line);
+
+                            //bytes = System.Text.ASCIIEncoding.UTF8.GetBytes(res);
+                            //byte[] bytesLength = BitConverter.GetBytes(bytes.Length);
+
+                            ////Передаем длину
+                            //if (ns.CanWrite)
+                            //{
+                            //    ns.Write(bytesLength, 0, bytesLength.Length);
+                            //}
+                            ////Передаем строку
+                            //if (ns.CanWrite)
+                            //{
+                            //    ns.Write(bytes, 0, bytes.Length);
+                            //}
+                            ns.Close();
+                            client.Close();
+                        });
+                        clientTask.Start();
+                    }
+                    catch (Exception ex)
+                    {
+                        //Console.WriteLine(ex.Message);
+                    }
+                }
+            });
+            task.Start();
+            task.Wait();
+            _listener.Stop();
+        }
+        #endregion
+
+        void ReadCommand(string line)
+        {
+            try
+            {
+                // split line to words
+                var words = line
+                    .Trim()
+                    .Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                // navigate through databases
+                if (words[0] == "#")
+                {
+                    ChangeDatabase(words[1]);
+                }
+                // show info
+                if (words[0].ToLower() == "/info")
+                {
+                    CommandLine.WriteInfo($"Uptime: {_stopwatch.Elapsed}. Version: {_settings.Version}.");
+                }
+                //if create database
+                if (words[0].ToLower() == "create" && words[1].ToLower() == "database")
+                {
+                    _logger.LogInformation($"Read command: [{line}].");
+                    var cmd = new CreateDatabaseCommand(words);
+                    var res = CreateDatabase(cmd.DatebaseName);
+                    _logger.LogInformation($"{res}.");
+                    CommandLine.WriteInfo(res);
+                }
+                //if drop database
+                if (words[0].ToLower() == "drop" && words[1].ToLower() == "database")
+                {
+                    _logger.LogInformation($"Read command: [{line}].");
+                    var cmd = new DropDatabaseCommand(words);
+                    var res = DropDatabase(cmd.DatebaseName);
+                    _logger.LogInformation($"{res}.");
+                    CommandLine.WriteInfo(res);
+                }
+                // if create table command
+                if (words[0].ToLower() == "create" && words[1].ToLower() == "table")
+                {
+                    _logger.LogInformation($"Read command: [{line}].");
+                    var res = _currentDatabase?.CreateTable(line);
+                    _logger.LogInformation($"{res}.");
+                    CommandLine.WriteInfo(res);
+                }
+                // if insert into
+                if (words[0].ToLower() == "insert" && words[1].ToLower() == "into")
+                {
+                    _logger.LogInformation($"Read command: [{line}].");
+                    var res = _currentDatabase?.InsertIntoTable(line);
+                    _logger.LogInformation($"{res}.");
+                    CommandLine.WriteInfo(res);
+                }
+                // if select from
+#warning 'Rewrite condition'
+                if (words[0].ToLower() == "select")
+                {
+                    string info = "";
+                    _logger.LogInformation($"Read command: [{line}].");
+                    var res = _currentDatabase?.SelectFromTable(words, out info);
+                    CommandLine.ShowData(res);
+                    _logger.LogInformation($"{info}.");
+                    CommandLine.WriteInfo(info);
+                }
+            }
+            catch (Error error)
+            {
+                CommandLine.WriteError($"{error}");
+                _logger.LogError($"{error}");
+            }
+            catch (Exception ex)
+            {
+                CommandLine.WriteError($"System exeption, see log files.");
+#if DEBUG
+                CommandLine.WriteError($"{ex}");
+#endif
+                _logger.LogCritical($"{ex}");
             }
         }
 
         public void ReadCommands()
         {
-            while(true)
+            while (true)
             {
-                try
-                {
-                    var line = CommandLine.Wait();
-                    if (line == "@")
-                        break;
-                    // split line to words
-                    var words = line
-                        .Trim()
-                        .Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    // navigate through databases
-                    if (words[0] == "#")
-                    {
-                        ChangeDatabase(words[1]);
-                    }
-                    // show info
-                    if (words[0].ToLower() == "/info")
-                    {
-                        CommandLine.WriteInfo($"Uptime: {_stopwatch.Elapsed}. Version: {_settings.Version}.");
-                    }
-                    //if create database
-                    if(words[0].ToLower() == "create" && words[1].ToLower() == "database")
-                    {
-                        _logger.LogInformation($"Read command: [{line}].");
-                        var cmd = new CreateDatabaseCommand(words);
-                        var res = CreateDatabase(cmd.DatebaseName);
-                        _logger.LogInformation($"{res}.");
-                        CommandLine.WriteInfo(res);
-                    }
-                    //if drop database
-                    if (words[0].ToLower() == "drop" && words[1].ToLower() == "database")
-                    {
-                        _logger.LogInformation($"Read command: [{line}].");
-                        var cmd = new DropDatabaseCommand(words);
-                        var res = DropDatabase(cmd.DatebaseName);
-                        _logger.LogInformation($"{res}.");
-                        CommandLine.WriteInfo(res);
-                    }
-                    // if create table command
-                    if (words[0].ToLower() == "create" && words[1].ToLower() == "table")
-                    {
-                        _logger.LogInformation($"Read command: [{line}].");
-                        var res = _currentDatabase?.CreateTable(line);
-                        _logger.LogInformation($"{res}.");
-                        CommandLine.WriteInfo(res);
-                    }
-                    // if insert into
-                    if (words[0].ToLower() == "insert" && words[1].ToLower() == "into")
-                    {
-                        _logger.LogInformation($"Read command: [{line}].");
-                        var res = _currentDatabase?.InsertIntoTable(line);
-                        _logger.LogInformation($"{res}.");
-                        CommandLine.WriteInfo(res);
-                    }
-                    // if select from
-#warning 'Rewrite condition'
-                    if (words[0].ToLower() == "select")
-                    {
-                        string info = "";
-                        _logger.LogInformation($"Read command: [{line}].");
-                        var res = _currentDatabase?.SelectFromTable(words, out info);
-                        CommandLine.ShowData(res);
-                        _logger.LogInformation($"{info}.");
-                        CommandLine.WriteInfo(info);
-                    }
-                }
-                catch(Error error)
-                {
-                    CommandLine.WriteError($"{error}");
-                    _logger.LogError($"{error}");
-                }
-                catch(Exception ex)
-                {
-                    CommandLine.WriteError($"System exeption, see log files.");
-#if DEBUG
-                    CommandLine.WriteError($"{ex}");
-#endif
-                    _logger.LogCritical($"{ex}");
-                }
+                var line = CommandLine.Wait();
+                //if (line == "@")
+                //    break;
+                ReadCommand(line);
             }
         }
 
