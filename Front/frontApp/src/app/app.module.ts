@@ -22,7 +22,12 @@ import {
   MatIconModule,
   MatFormFieldModule,
   MatInputModule,
-  MatSnackBarModule
+  MatSnackBarModule,
+  MatTreeModule,
+  MatProgressBarModule,
+  MatBadgeModule,
+  MatSidenavModule
+
 } from '@angular/material';
 import { inspect } from 'util';
 
@@ -39,7 +44,12 @@ import { inspect } from 'util';
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatTreeModule,
+    MatProgressBarModule,
+    MatBadgeModule,
+    MatSidenavModule
+
   ],
   declarations: []
 })

@@ -6,5 +6,6 @@ namespace DTO
 {
     public class ErrorData
     {
+        public string Message { get; set; }
     }
 }

@@ -6,6 +6,7 @@ using DTO;
 using Errors;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Settings;
 using System;
 using System.Diagnostics;
@@ -13,6 +14,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace DBMS
 {
@@ -128,9 +130,9 @@ namespace DBMS
                             }
                             var line = System.Text.ASCIIEncoding.UTF8.GetString(bytes, 0, length);
 
-                            ReadCommand(line);
-
-                            bytes = System.Text.ASCIIEncoding.UTF8.GetBytes($"{DateTime.Now} Test.");
+                            var res = ReadCommand(line);
+                            var json = JsonConvert.SerializeObject(res);
+                            bytes = System.Text.ASCIIEncoding.UTF8.GetBytes(json);
                             byte[] bytesLength = BitConverter.GetBytes(bytes.Length);
 
                             ////Передаем длину
@@ -160,8 +162,9 @@ namespace DBMS
         }
         #endregion
 
-        void ReadCommand(string line)
+        TransferObject ReadCommand(string line)
         {
+            var to = new TransferObject();
             try
             {
                 // split line to words
@@ -176,7 +179,15 @@ namespace DBMS
                 // show info
                 if (words[0].ToLower() == "/info")
                 {
-                    CommandLine.WriteInfo($"Uptime: {_stopwatch.Elapsed}. Version: {_settings.Version}.");
+                    var res = $"Uptime: {_stopwatch.Elapsed}. Version: {_settings.Version}.";
+                    var resData = new ResultData
+                    {
+                        DataType = ResultDataType.Message,
+                        Message = res
+                    };
+                    CommandLine.WriteInfo(res);
+                    to.Data = resData;
+                    return to;
                 }
                 //// show databases
                 //if (words[0].ToLower() == "/show databases")
@@ -228,11 +239,18 @@ namespace DBMS
                     _logger.LogInformation($"{info}.");
                     CommandLine.WriteInfo(info);
                 }
+                return to;
             }
             catch (Error error)
             {
                 CommandLine.WriteError($"{error}");
                 _logger.LogError($"{error}");
+                var err = new ErrorData
+                {
+                    Message = $"{error}"
+                };
+                to.Error = err;
+                return to;
             }
             catch (Exception ex)
             {
@@ -241,6 +259,12 @@ namespace DBMS
                 CommandLine.WriteError($"{ex}");
 #endif
                 _logger.LogCritical($"{ex}");
+                var err = new ErrorData
+                {
+                    Message = $"{ex}"
+                };
+                to.Error = err;
+                return to;
             }
         }
 
