@@ -4,6 +4,11 @@ import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
+import { AppConfig } from './app.config';
+import { TcpService } from './services/tcp.service';
+import { FormsModule } from '@angular/forms';
+
+
 import {
   MatCardModule,
   MatButtonModule,
@@ -19,6 +24,7 @@ import {
   MatInputModule,
   MatSnackBarModule
 } from '@angular/material';
+import { inspect } from 'util';
 
 @NgModule({
   exports: [
@@ -46,9 +52,13 @@ export class MaterialModule { }
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
-    MaterialModule
+    MaterialModule,
+    FormsModule
   ],
-  providers: [],
+  providers: [
+    AppConfig,
+    TcpService
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

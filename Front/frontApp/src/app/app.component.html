@@ -1,4 +1,6 @@
 
   <mat-form-field>
-    <textarea matInput placeholder="SQL-script"></textarea>
+    <textarea matInput placeholder="SQL-script" [(ngModel)]="message"></textarea>
   </mat-form-field>
+
+  <button mat-stroked-button (click)="run()">Run</button>

@@ -130,19 +130,19 @@ namespace DBMS
 
                             ReadCommand(line);
 
-                            //bytes = System.Text.ASCIIEncoding.UTF8.GetBytes(res);
-                            //byte[] bytesLength = BitConverter.GetBytes(bytes.Length);
+                            bytes = System.Text.ASCIIEncoding.UTF8.GetBytes($"{DateTime.Now} Test.");
+                            byte[] bytesLength = BitConverter.GetBytes(bytes.Length);
 
                             ////Передаем длину
                             //if (ns.CanWrite)
                             //{
                             //    ns.Write(bytesLength, 0, bytesLength.Length);
                             //}
-                            ////Передаем строку
-                            //if (ns.CanWrite)
-                            //{
-                            //    ns.Write(bytes, 0, bytes.Length);
-                            //}
+                            //Передаем строку
+                            if (ns.CanWrite)
+                            {
+                                ns.Write(bytes, 0, bytes.Length);
+                            }
                             ns.Close();
                             client.Close();
                         });
@@ -178,6 +178,11 @@ namespace DBMS
                 {
                     CommandLine.WriteInfo($"Uptime: {_stopwatch.Elapsed}. Version: {_settings.Version}.");
                 }
+                //// show databases
+                //if (words[0].ToLower() == "/show databases")
+                //{
+                //    CommandLine.WriteInfo($"Uptime: {_stopwatch.Elapsed}. Version: {_settings.Version}.");
+                //}
                 //if create database
                 if (words[0].ToLower() == "create" && words[1].ToLower() == "database")
                 {
