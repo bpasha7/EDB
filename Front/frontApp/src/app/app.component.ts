@@ -1,155 +1,156 @@
 import { TcpService } from './services/tcp.service';
-import {FlatTreeControl} from '@angular/cdk/tree';
-import {Component, Injectable} from '@angular/core';
-import {BehaviorSubject, Observable, of as observableOf} from 'rxjs';
+import { FlatTreeControl } from '@angular/cdk/tree';
+import { Component, Injectable } from '@angular/core';
+import { BehaviorSubject, Observable, of as observableOf } from 'rxjs';
 import { MatTreeFlattener, MatTreeFlatDataSource } from '@angular/material';
 
-/**
- * File node data with nested structure.
- * Each node has a filename, and a type or a list of children.
- */
-export class FileNode {
-  children: FileNode[];
-  filename: string;
-  type: any;
+const LOAD_MORE = 'LOAD_MORE';
+
+/** Nested node */
+export class LoadmoreNode {
+  childrenChange = new BehaviorSubject<LoadmoreNode[]>([]);
+
+  get children(): LoadmoreNode[] {
+    return this.childrenChange.value;
+  }
+
+  constructor(public item: string,
+    public hasChildren = false,
+    public loadMoreParentItem: string | null = null) { }
 }
 
 /** Flat node with expandable and level information */
-export class FileFlatNode {
-  constructor(
-    public expandable: boolean, public filename: string, public level: number, public type: any) {}
+export class LoadmoreFlatNode {
+  constructor(public item: string,
+    public level = 1,
+    public expandable = false,
+    public loadMoreParentItem: string | null = null) { }
 }
 
 /**
- * The file structure tree data in string. The data could be parsed into a Json object
- */
-const TREE_DATA = JSON.stringify({
-  Applications: {
-    Calendar: 'app',
-    Chrome: 'app',
-    Webstorm: 'app'
-  },
-  Documents: {
-    angular: {
-      src: {
-        compiler: 'ts',
-        core: 'ts'
-      }
-    },
-    material2: {
-      src: {
-        button: 'ts',
-        checkbox: 'ts',
-        input: 'ts'
-      }
-    }
-  },
-  Downloads: {
-    October: 'pdf',
-    November: 'pdf',
-    Tutorial: 'html'
-  },
-  Pictures: {
-    'Photo Booth Library': {
-      Contents: 'dir',
-      Pictures: 'dir'
-    },
-    Sun: 'png',
-    Woods: 'jpg'
-  }
-});
-
-/**
- * File database, it can build a tree structured Json object from string.
- * Each node in Json object represents a file or a directory. For a file, it has filename and type.
- * For a directory, it has filename and children (a list of files or directories).
- * The input will be a json object string, and the output is a list of `FileNode` with nested
- * structure.
+ * A database that only load part of the data initially. After user clicks on the `Load more`
+ * button, more data will be loaded.
  */
 @Injectable()
-export class FileDatabase {
-  dataChange = new BehaviorSubject<FileNode[]>([]);
+export class LoadmoreDatabase {
+  batchNumber = 5;
+  dataChange = new BehaviorSubject<LoadmoreNode[]>([]);
+  nodeMap = new Map<string, LoadmoreNode>();
 
-  get data(): FileNode[] { return this.dataChange.value; }
-
-  constructor() {
-    this.initialize();
-  }
+  /** The data */
+  rootLevelNodes: string[] = ['Vegetables', 'Fruits'];
+  dataMap = new Map<string, string[]>([
+    ['Fruits', ['Apple', 'Orange', 'Banana']],
+    ['Vegetables', ['Tomato', 'Potato', 'Onion']],
+    ['Apple', ['Fuji', 'Macintosh']],
+    ['Onion', ['Yellow', 'White', 'Purple', 'Green', 'Shallot', 'Sweet', 'Red', 'Leek']],
+  ]);
 
   initialize() {
-    // Parse the string to json object.
-    const dataObject = JSON.parse(TREE_DATA);
-
-    // Build the tree nodes from Json object. The result is a list of `FileNode` with nested
-    //     file node as children.
-    const data = this.buildFileTree(dataObject, 0);
-
-    // Notify the change.
+    const data = this.rootLevelNodes.map(name => this._generateNode(name));
     this.dataChange.next(data);
   }
 
-  /**
-   * Build the file structure tree. The `value` is the Json object, or a sub-tree of a Json object.
-   * The return value is the list of `FileNode`.
-   */
-  buildFileTree(obj: object, level: number): FileNode[] {
-    return Object.keys(obj).reduce<FileNode[]>((accumulator, key) => {
-      const value = obj[key];
-      const node = new FileNode();
-      node.filename = key;
+  /** Expand a node whose children are not loaded */
+  loadMore(item: string, onlyFirstTime = false) {
+    if (!this.nodeMap.has(item) || !this.dataMap.has(item)) {
+      return;
+    }
+    const parent = this.nodeMap.get(item)!;
+    const children = this.dataMap.get(item)!;
+    if (onlyFirstTime && parent.children!.length > 0) {
+      return;
+    }
+    const newChildrenNumber = parent.children!.length + this.batchNumber;
+    const nodes = children.slice(0, newChildrenNumber)
+      .map(name => this._generateNode(name));
+    if (newChildrenNumber < children.length) {
+      // Need a new load more node
+      nodes.push(new LoadmoreNode(LOAD_MORE, false, item));
+    }
 
-      if (value != null) {
-        if (typeof value === 'object') {
-          node.children = this.buildFileTree(value, level + 1);
-        } else {
-          node.type = value;
-        }
-      }
+    parent.childrenChange.next(nodes);
+    this.dataChange.next(this.dataChange.value);
+  }
 
-      return accumulator.concat(node);
-    }, []);
+  private _generateNode(item: string): LoadmoreNode {
+    if (this.nodeMap.has(item)) {
+      return this.nodeMap.get(item)!;
+    }
+    const result = new LoadmoreNode(item, this.dataMap.has(item));
+    this.nodeMap.set(item, result);
+    return result;
   }
 }
+
 
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
-  providers: [FileDatabase]
+  providers: [LoadmoreDatabase]
 })
 
 export class AppComponent {
   title = 'frontApp';
   message = '/info';
 
-  treeControl: FlatTreeControl<FileFlatNode>;
-  treeFlattener: MatTreeFlattener<FileNode, FileFlatNode>;
-  dataSource: MatTreeFlatDataSource<FileNode, FileFlatNode>;
+  nodeMap = new Map<string, LoadmoreFlatNode>();
+  treeControl: FlatTreeControl<LoadmoreFlatNode>;
+  treeFlattener: MatTreeFlattener<LoadmoreNode, LoadmoreFlatNode>;
+  // Flat tree data source
+  dataSource: MatTreeFlatDataSource<LoadmoreNode, LoadmoreFlatNode>;
 
   constructor(
     private tcpService: TcpService,
-    database: FileDatabase
+    private database: LoadmoreDatabase
   ) {
-    this.treeFlattener = new MatTreeFlattener(this.transformer, this._getLevel,
-      this._isExpandable, this._getChildren);
-    this.treeControl = new FlatTreeControl<FileFlatNode>(this._getLevel, this._isExpandable);
+    this.treeFlattener = new MatTreeFlattener(this.transformer, this.getLevel,
+      this.isExpandable, this.getChildren);
+
+    this.treeControl = new FlatTreeControl<LoadmoreFlatNode>(this.getLevel, this.isExpandable);
+
     this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
 
-    database.dataChange.subscribe(data => this.dataSource.data = data);
+    database.dataChange.subscribe(data => {
+      this.dataSource.data = data;
+    });
+
+    database.initialize();
   }
 
-  transformer = (node: FileNode, level: number) => {
-    return new FileFlatNode(!!node.children, node.filename, level, node.type);
+  getChildren = (node: LoadmoreNode): Observable<LoadmoreNode[]> => node.childrenChange;
+
+  transformer = (node: LoadmoreNode, level: number) => {
+    const existingNode = this.nodeMap.get(node.item);
+
+    if (existingNode) {
+      return existingNode;
+    }
+
+    const newNode =
+      new LoadmoreFlatNode(node.item, level, node.hasChildren, node.loadMoreParentItem);
+    this.nodeMap.set(node.item, newNode);
+    return newNode;
   }
 
-  private _getLevel = (node: FileFlatNode) => node.level;
+  getLevel = (node: LoadmoreFlatNode) => node.level;
 
-  private _isExpandable = (node: FileFlatNode) => node.expandable;
+  isExpandable = (node: LoadmoreFlatNode) => node.expandable;
 
-  private _getChildren = (node: FileNode): Observable<FileNode[]> => observableOf(node.children);
+  hasChild = (_: number, _nodeData: LoadmoreFlatNode) => _nodeData.expandable;
 
-  hasChild = (_: number, _nodeData: FileFlatNode) => _nodeData.expandable;
+  isLoadMore = (_: number, _nodeData: LoadmoreFlatNode) => _nodeData.item === LOAD_MORE;
+
+  /** Load more nodes from data source */
+  loadMore(item: string) {
+    this.database.loadMore(item);
+  }
+
+  loadChildren(node: LoadmoreFlatNode) {
+    this.database.loadMore(node.item, true);
+  }
 
 
   run() {

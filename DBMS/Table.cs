@@ -32,7 +32,7 @@ namespace DBMS
         /// </summary>
         private readonly string Database;
         private readonly string Path;
-        private Column[] _columns;
+        public Column[] Columns;
         private FileStream _fileStream;
         private readonly NLog.Logger _logger;
 
@@ -49,7 +49,7 @@ namespace DBMS
         /// <summary>
         /// Get table scheme from head file
         /// </summary>
-        private void getScheme()
+        public void getScheme()
         {
             try
             {
@@ -60,27 +60,27 @@ namespace DBMS
                 // read count of table columns
                 var columnsCount = _fileStream.ReadInt();
                 // create array to read columns properties
-                _columns = new Column[columnsCount];
+                Columns = new Column[columnsCount];
                 // read all columns properties
                 for (int i = 0; i < columnsCount; i++)
                 {
-                    _columns[i] = new Column();
+                    Columns[i] = new Column();
                     // read lenght of columna name
                     var nameLength = _fileStream.ReadInt();
                     // read column name
-                    _columns[i].Name = _fileStream.ReadText(nameLength);
+                    Columns[i].Name = _fileStream.ReadText(nameLength);
                     // read column type
-                    _columns[i].Type = _fileStream.ReadByte();
+                    Columns[i].Type = _fileStream.ReadByte();
                     // read column size
-                    _columns[i].Size = _fileStream.ReadInt();
+                    Columns[i].Size = _fileStream.ReadInt();
                     // read pk flag
-                    _columns[i].PrimaryKey = _fileStream.ReadByte();
+                    Columns[i].PrimaryKey = _fileStream.ReadByte();
                     // read index name
                     var indexNameLength = _fileStream.ReadInt();
                     if (indexNameLength > 0)
-                        _columns[i].IndexName = _fileStream.ReadText(indexNameLength);
+                        Columns[i].IndexName = _fileStream.ReadText(indexNameLength);
                     // set offset in record
-                    _columns[i].Offset = i == 0 ? 0 : _columns[i - 1].Offset + _columns[i - 1].Size;
+                    Columns[i].Offset = i == 0 ? 0 : Columns[i - 1].Offset + Columns[i - 1].Size;
                 }
 
             }
@@ -101,7 +101,7 @@ namespace DBMS
         /// <returns>column or null</returns>
         private Column getColumnByName(string name)
         {
-            return _columns.SingleOrDefault(c => c.Name.ToLower() == name.ToLower());
+            return Columns.SingleOrDefault(c => c.Name.ToLower() == name.ToLower());
         }
         /// <summary>
         /// Check data type from scheme and value from query
@@ -147,7 +147,7 @@ namespace DBMS
         {
             var size = 0;
             // sum all columns size
-            foreach (var item in _columns)
+            foreach (var item in Columns)
             {
                 size += item.Size;
             }
@@ -179,32 +179,32 @@ namespace DBMS
                 {
                     var dataToInsert = values.ToList();
                     // compare count iserted data and column count
-                    if (dataToInsert.Count != _columns.Length)
+                    if (dataToInsert.Count != Columns.Length)
                         throw new InsertCommandExcecute($"Inserted data does not match field count in table.");
 
                     // check data to insert
-                    for (int i = 0; i < _columns.Length; i++)
+                    for (int i = 0; i < Columns.Length; i++)
                     {
-                        var isValid = checkDataToInsert(_columns[i].Name, dataToInsert[i].Value);
+                        var isValid = checkDataToInsert(Columns[i].Name, dataToInsert[i].Value);
                         if (!isValid)
-                            throw new InsertCommandExcecute($"Column [{_columns[i].Name}] does not match for [{dataToInsert[i].Value}] format.");
+                            throw new InsertCommandExcecute($"Column [{Columns[i].Name}] does not match for [{dataToInsert[i].Value}] format.");
                     }
 
-                    for (int i = 0; i < _columns.Length; i++)
+                    for (int i = 0; i < Columns.Length; i++)
                     {
-                        switch (_columns[i].Type)
+                        switch (Columns[i].Type)
                         {
                             case 1:
                                 int intValue = Convert.ToInt32(dataToInsert[i].Value);
                                 _fileStream.WriteInt(intValue);
                                 // if has index name write index
-                                if (_columns[i].IndexName?.Length > 0)
+                                if (Columns[i].IndexName?.Length > 0)
                                 {
                                     var newIndex = new DenseIndex(intValue, lastPosition);
-                                    _logger.Trace($"Записываем индекс для колонки {_columns[i].Name} для значения {intValue}.");
-                                    var posToInsertIndex = findPositiontoInsertIndex(_columns[i], intValue);
+                                    _logger.Trace($"Записываем индекс для колонки {Columns[i].Name} для значения {intValue}.");
+                                    var posToInsertIndex = findPositiontoInsertIndex(Columns[i], intValue);
 
-                                    writeDenseIndex(_columns[i], newIndex, posToInsertIndex);
+                                    writeDenseIndex(Columns[i], newIndex, posToInsertIndex);
                                 }
                                 break;
                             case 2:
@@ -216,10 +216,10 @@ namespace DBMS
                                 string text = dataToInsert[i].Value
                                     .Substring(1, dataToInsert[i].Value.Length - 2);
                                 // check available size
-                                if (text.Length > _columns[i].Size)
-                                    throw new InsertCommandExcecute($"Column [{_columns[i].Name}] has maximum size {_columns[i].Size}.");
+                                if (text.Length > Columns[i].Size)
+                                    throw new InsertCommandExcecute($"Column [{Columns[i].Name}] has maximum size {Columns[i].Size}.");
                                 // pad text if length is less then column size
-                                text = text.PadLeft((int)_columns[i].Size);
+                                text = text.PadLeft((int)Columns[i].Size);
                                 _fileStream.WriteText(text);
                                 break;
                             case 4:
@@ -228,7 +228,7 @@ namespace DBMS
                                     .Substring(1, dataToInsert[i].Value.Length - 2);
                                 var convertResult = DateTime.TryParse(dateString, out date);
                                 if (!convertResult)
-                                    throw new InsertCommandExcecute($"Value for column [{_columns[i].Name}] has not correct datetime format.");
+                                    throw new InsertCommandExcecute($"Value for column [{Columns[i].Name}] has not correct datetime format.");
                                 _fileStream.WriteDate(date.Ticks);
                                 break;
                             default:
@@ -288,7 +288,7 @@ namespace DBMS
         {
             //get block position
             var pos = (long)_fileStream.GetPosition();
-            var columns = _columns.Where(col => col.Visible).ToArray();
+            var columns = Columns.Where(col => col.Visible).ToArray();
             var values = new object[columns.Length];
             //var current = 0;
             // cycle by colmns to read
@@ -313,7 +313,7 @@ namespace DBMS
                         break;
                     case 3:
                         {
-                            int length = Convert.ToInt32(_columns[j].Size);//_fileStream.ReadInt();
+                            int length = Convert.ToInt32(Columns[j].Size);//_fileStream.ReadInt();
                             string val = _fileStream.ReadText(length).TrimStart();
                             _logger.Trace($"Read text {val}. Columns {columns[j].Name}.");
                             values[j] = val;
@@ -342,7 +342,7 @@ namespace DBMS
             if (conditions.Count == 1 && operators.Count == 0 && columnDictionary.Count == 1)
             {
                 var kV = columnDictionary.ElementAt(0);
-                var col = _columns[kV.Value];
+                var col = Columns[kV.Value];
                 switch (col.Type)
                 {
                     case 1:
@@ -384,7 +384,7 @@ namespace DBMS
         {
             // get columns that visible
             _logger.Trace($"Get columns to input data.");
-            var columns = _columns.Where(col => col.Visible).ToList();
+            var columns = Columns.Where(col => col.Visible).ToList();
             _logger.Trace($"Got {columns.Count} columns to input data.");
             // if filtered column
             var columnDictionary = new Dictionary<string, int>();
@@ -393,20 +393,20 @@ namespace DBMS
             {
                 _logger.Trace($"Try to catch fields into condition.");
                 // find fields into conditions
-                for (int i = 0; i < _columns.Length; i++)
+                for (int i = 0; i < Columns.Length; i++)
                 {
-                    var colName = _columns[i].Name.ToLower();
+                    var colName = Columns[i].Name.ToLower();
                     var fieldCondition = cmd.Conditions
                         .Where(condition => condition.Operands.Contains(colName))
                         .SingleOrDefault();
                     if (fieldCondition != null && !columnDictionary.ContainsKey(colName))
                     {
                         // add into dictionary
-                        _logger.Info($"Detected field [{_columns[i].Name}] into conditions.");
+                        _logger.Info($"Detected field [{Columns[i].Name}] into conditions.");
                         columnDictionary.Add(colName, i);
-                        if (_columns[i].IndexName?.Length > 0)
+                        if (Columns[i].IndexName?.Length > 0)
                         {
-                            positions = readPositions(_columns[i], fieldCondition);
+                            positions = readPositions(Columns[i], fieldCondition);
                         }
                     }
                 }
@@ -488,7 +488,7 @@ namespace DBMS
             if (cmd.AllColumns)
             {
                 // add namne of columns to result data
-                foreach (var column in _columns)
+                foreach (var column in Columns)
                 {
                     resultData.Headers.Add(column.Name);
                     resultData.Types.Add(column.GetTypeName());

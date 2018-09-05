@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace DBMS
@@ -27,6 +28,7 @@ namespace DBMS
         /// timer
         /// </summary>
         private Stopwatch _stopwatch;
+        public IList<Table> Tables { get; set; }
         /// <summary>
         /// Database class constructor
         /// </summary>
@@ -42,6 +44,21 @@ namespace DBMS
             _stopwatch = new Stopwatch();
             _stopwatch.Start();
         }
+        /// <summary>
+        /// Load all tables info for json serialize
+        /// </summary>
+        public void LoadTablesInfo()
+        {
+            DirectoryInfo di = new DirectoryInfo($"{_path}{Name}");
+            Tables = new List<Table>();
+            foreach (var talbeName in di.GetFiles().Where(f => f.Extension == ".dt").Select(t => t.Name.Replace(".dt", "")))
+            {
+                var table = new Table(_path, Name, talbeName);
+                //table.getScheme();
+                Tables.Add(table);
+            }
+        }
+
         /// <summary>
         /// Create table into current database
         /// </summary>

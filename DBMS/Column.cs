@@ -1,4 +1,5 @@
 ﻿using Errors;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -32,6 +33,7 @@ namespace DBMS
         /// <summary>
         /// Name of column
         /// </summary>
+        [JsonIgnore]
         public bool Visible { get => _visible; set => _visible = value; }
         /// <summary>
         /// Name of column
@@ -52,6 +54,7 @@ namespace DBMS
         /// <summary>
         /// Offset from record beginning
         /// </summary>
+        [JsonIgnore]
         public int Offset { get => _offset; set => _offset = value; }
         /// <summary>
         /// Parse column defenition from query

@@ -26,6 +26,32 @@
     </mat-nav-list> -->
     <h3 mat-subheader>Databases</h3>
     <mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
+      <!-- Leaf node -->
+      <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+        <button mat-icon-button disabled></button>
+        {{node.item}}
+      </mat-tree-node>
+    
+      <!-- expandable node -->
+      <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
+        <button mat-icon-button
+                [attr.aria-label]="'toggle ' + node.filename"
+                (click)="loadChildren(node)"
+                matTreeNodeToggle>
+          <mat-icon class="mat-icon-rtl-mirror">
+            {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
+          </mat-icon>
+        </button>
+        {{node.item}}
+      </mat-tree-node>
+    
+      <mat-tree-node *matTreeNodeDef="let node; when: isLoadMore">
+        <button mat-button (click)="loadMore(node.loadMoreParentItem)">
+          Load more...
+        </button>
+      </mat-tree-node>
+    </mat-tree>
+    <!-- <mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
       <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
         <button mat-icon-button disabled>
           <mat-icon>
@@ -43,15 +69,20 @@
         </button>
         {{node.item}}
       </mat-tree-node>
-    </mat-tree>
+    </mat-tree> -->
   </mat-sidenav>
 
   <mat-sidenav-content>
     <!-- <div (click)="sidenav.isOpen ? sidenav.toggle() : skip()">{{sidenav.isOpen}} -->
     <!-- <router-outlet>
-
+      
     </router-outlet> -->
     <!-- </div> -->
+    <mat-form-field>
+      <textarea matInput placeholder="SQL-script" [(ngModel)]="message"></textarea>
+    </mat-form-field>
+  
+    <button mat-stroked-button (click)="run()">Run</button>
   </mat-sidenav-content>
 
 </mat-sidenav-container>

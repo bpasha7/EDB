@@ -9,6 +9,8 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Settings;
 using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -131,7 +133,7 @@ namespace DBMS
                             var line = System.Text.ASCIIEncoding.UTF8.GetString(bytes, 0, length);
 
                             var res = ReadCommand(line);
-                            var json = JsonConvert.SerializeObject(res);
+                            var json = JsonConvert.SerializeObject(res, Formatting.Indented);
                             bytes = System.Text.ASCIIEncoding.UTF8.GetBytes(json);
                             byte[] bytesLength = BitConverter.GetBytes(bytes.Length);
 
@@ -189,11 +191,19 @@ namespace DBMS
                     to.Data = resData;
                     return to;
                 }
-                //// show databases
-                //if (words[0].ToLower() == "/show databases")
-                //{
-                //    CommandLine.WriteInfo($"Uptime: {_stopwatch.Elapsed}. Version: {_settings.Version}.");
-                //}
+                //show databases
+                if (line.ToLower() == "/show databases")
+                {
+                    var res = GetSchemes();
+                    var resData = new ResultData
+                    {
+                        DataType = ResultDataType.Message,
+                        Message = res
+                    };
+                    CommandLine.WriteInfo(res);
+                    to.Data = resData;
+                    return to;
+                }
                 //if create database
                 if (words[0].ToLower() == "create" && words[1].ToLower() == "database")
                 {
@@ -307,6 +317,38 @@ namespace DBMS
             if (_currentDatabase.Name == databaseName)
                 ChangeDatabase();
             return $"Database [{databaseName}] was deleted.";
+        }
+
+        public string GetSchemes()
+        {
+            var dirPath = $"{_settings.RootPath}";
+            DirectoryInfo di = new DirectoryInfo(dirPath);
+            var dbs = new List<Database>();
+            //DataSet dataSet = new DataSet("dataSet");
+            //dataSet.Namespace = "NetFrameWork";
+
+            foreach (var dir in di.GetDirectories())
+            {
+                var db = new Database(_settings.RootPath, dir.Name);
+                db.LoadTablesInfo();
+                dbs.Add(db);
+                //DataTable dbSet = new DataTable(dir.Name);
+                //foreach (var t in db.Tables)
+                //{
+                //    DataTable tableSet = new DataTable(t.Name);
+                //    tableSet.Columns.Add(new DataColumn("col"));
+                //    foreach (var col in t.Columns)
+                //    {
+                //        var row = tableSet.NewRow();
+                //        row["col"] = col.Name;
+                //        tableSet.Rows.Add(row);
+                //    }
+                //    dbSet.
+                //}
+                //dataSet.Tables.Add(dbSet);
+            }
+            var json = JsonConvert.SerializeObject(dbs, Formatting.Indented);
+            return json.ToString();
         }
 
         public string GetAuthors()
