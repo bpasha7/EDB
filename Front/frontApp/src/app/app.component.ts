@@ -3,6 +3,7 @@ import { FlatTreeControl } from '@angular/cdk/tree';
 import { Component, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of as observableOf } from 'rxjs';
 import { MatTreeFlattener, MatTreeFlatDataSource } from '@angular/material';
+import { TransferObject } from './models/transfer-object';
 
 const LOAD_MORE = 'LOAD_MORE';
 
@@ -38,12 +39,12 @@ export class LoadmoreDatabase {
   nodeMap = new Map<string, LoadmoreNode>();
 
   /** The data */
-  rootLevelNodes: string[] = ['Vegetables', 'Fruits'];
+  rootLevelNodes: string[] = ['DBstud', 'DBtest'];
   dataMap = new Map<string, string[]>([
-    ['Fruits', ['Apple', 'Orange', 'Banana']],
-    ['Vegetables', ['Tomato', 'Potato', 'Onion']],
-    ['Apple', ['Fuji', 'Macintosh']],
-    ['Onion', ['Yellow', 'White', 'Purple', 'Green', 'Shallot', 'Sweet', 'Red', 'Leek']],
+    // ['Fruits', ['Apple', 'Orange', 'Banana']],
+    // ['Vegetables', ['Tomato', 'Potato', 'Onion']],
+    // ['Apple', ['Fuji', 'Macintosh']],
+    // ['Onion', ['Yellow', 'White', 'Purple', 'Green', 'Shallot', 'Sweet', 'Red', 'Leek']],
   ]);
 
   initialize() {
@@ -106,18 +107,6 @@ export class AppComponent {
     private tcpService: TcpService,
     private database: LoadmoreDatabase
   ) {
-    this.treeFlattener = new MatTreeFlattener(this.transformer, this.getLevel,
-      this.isExpandable, this.getChildren);
-
-    this.treeControl = new FlatTreeControl<LoadmoreFlatNode>(this.getLevel, this.isExpandable);
-
-    this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
-
-    database.dataChange.subscribe(data => {
-      this.dataSource.data = data;
-    });
-
-    database.initialize();
   }
 
   getChildren = (node: LoadmoreNode): Observable<LoadmoreNode[]> => node.childrenChange;
@@ -154,8 +143,41 @@ export class AppComponent {
 
 
   run() {
-    this.tcpService.sendMessage(this.message);
-  }
+    // var t = this.tcpService.sendMessage('/show databases');
+    this.tcpService.sendMessagePromise('/show databases').then(res => {
+      //  let t = res.tos;
+      const dataObject: TransferObject = JSON.parse(`${res}`);
+      // const dataObject: TransferObject = res;
+      this.database.dataMap = new Map<string, string[]>(JSON.parse(dataObject.Data.Message));
+      this.treeFlattener = new MatTreeFlattener(this.transformer, this.getLevel,
+        this.isExpandable, this.getChildren);
 
+      this.treeControl = new FlatTreeControl<LoadmoreFlatNode>(this.getLevel, this.isExpandable);
+
+      this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
+
+      this.database.dataChange.subscribe(data => {
+        this.dataSource.data = data;
+      });
+
+      this.database.initialize();
+    });
+    // this.database.dataMap = res;//this.tcpService.sendMessage('/show databases').Data.Message;
+    // this.treeFlattener = new MatTreeFlattener(this.transformer, this.getLevel,
+    //   this.isExpandable, this.getChildren);
+
+    // this.treeControl = new FlatTreeControl<LoadmoreFlatNode>(this.getLevel, this.isExpandable);
+
+    // this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
+
+    // this.database.dataChange.subscribe(data => {
+    //   this.dataSource.data = data;
+    // });
+
+    // this.database.initialize();
+    //  this.tcpService.sendMessage(this.message);
+    // })
+
+  }
 
 }

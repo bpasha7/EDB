@@ -9,10 +9,12 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Settings;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -326,28 +328,19 @@ namespace DBMS
             var dbs = new List<Database>();
             //DataSet dataSet = new DataSet("dataSet");
             //dataSet.Namespace = "NetFrameWork";
+            var hashTable = new Hashtable();
+            var arr = new List<object[]>();
 
             foreach (var dir in di.GetDirectories())
             {
                 var db = new Database(_settings.RootPath, dir.Name);
                 db.LoadTablesInfo();
-                dbs.Add(db);
-                //DataTable dbSet = new DataTable(dir.Name);
-                //foreach (var t in db.Tables)
-                //{
-                //    DataTable tableSet = new DataTable(t.Name);
-                //    tableSet.Columns.Add(new DataColumn("col"));
-                //    foreach (var col in t.Columns)
-                //    {
-                //        var row = tableSet.NewRow();
-                //        row["col"] = col.Name;
-                //        tableSet.Rows.Add(row);
-                //    }
-                //    dbSet.
-                //}
-                //dataSet.Tables.Add(dbSet);
+                arr.Add(new object[] { db.Name, db.Tables.Select(t => t.Name).ToArray() });
+                //arr.Add();
+
+                //hashTable.Add(db.Name, db.Tables.Select(t=>t.Name).ToArray());
             }
-            var json = JsonConvert.SerializeObject(dbs, Formatting.Indented);
+            var json = JsonConvert.SerializeObject(arr.ToArray(), Formatting.Indented);
             return json.ToString();
         }
 

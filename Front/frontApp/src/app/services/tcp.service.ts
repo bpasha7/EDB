@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AppConfig } from '../app.config';
+import { TransferObject } from '../models/transfer-object';
 
 declare const Buffer
 @Injectable({
@@ -28,7 +29,7 @@ export class TcpService {
     }
 
   }
-  sendMessage(textMessage: string) {
+  sendMessage(textMessage: string): any {
     let client = new window.net.Socket();
     client.connect(this._config.port, this._config.host, () => {
       this.writeLog(`Client connected to ${this._config.host}:${this._config.port}`);
@@ -40,7 +41,8 @@ export class TcpService {
     client.on('data', (data) => {
       console.log(`Client received: ${data}`);
       // if (data.toString().endsWith('exit')) {
-        client.destroy();
+      client.destroy();
+      // return data;
       // }
     });
 
@@ -53,6 +55,37 @@ export class TcpService {
     });
 
   }
+
+  sendMessagePromise(textMessage: string) {
+    return new Promise((resolve, reject) => {
+      let client = new window.net.Socket();
+      client.connect(this._config.port, this._config.host, () => {
+        this.writeLog(`Client connected to ${this._config.host}:${this._config.port}`);
+        client.write(this.getLength(textMessage.length));
+        client.write(textMessage);
+        this.writeLog('Message was wrtitten');
+      })
+
+      client.on('data', (data) => {
+        console.log(`Client received: ${data}`);
+        // if (data.toString().endsWith('exit')) {
+        client.destroy();
+        
+        resolve(data);
+        // }
+      });
+
+      client.on('close', () => {
+        console.log('Client closed');
+      });
+
+      client.on('error', (err) => {
+        console.error(err);
+      });
+    }
+    );
+  }
+
   /**
    * Get bytes of message length
    * @param messageLength Message length 
