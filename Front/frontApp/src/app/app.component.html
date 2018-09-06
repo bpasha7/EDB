@@ -2,82 +2,34 @@
   <button mat-icon-button (click)="sidenav.toggle()">
     <mat-icon >menu</mat-icon>
   </button>
-   <!--<button *ngIf="!isLogined" mat-icon-button routerLink="/login">
-    <mat-icon>lock</mat-icon>
-  </button>
-  <h1>{{title}}</h1>
-  <button *ngIf="isLogined && unreadMessageCount == 0" class="right-elements" routerLink="/messages" mat-icon-button>
-    <mat-icon>notifications</mat-icon>
-  </button>
-  <button *ngIf="isLogined && unreadMessageCount > 0" class="right-elements" routerLink="/messages" mat-icon-button>
-    <mat-icon matBadge="{{unreadMessageCount}}" matBadgeColor="accent">notifications_active</mat-icon>
-  </button> -->
 </mat-toolbar>
 
 <mat-sidenav-container class="my-container" style="height: 100%;">
 
   <mat-sidenav #sidenav mode="over" opened="false" color="grey" class="my-sidenav" [fixedInViewport]="false">
-    <!-- <mat-nav-list class="my-list-menu">
-      <h3 mat-subheader>Меню</h3>
-      <a mat-list-item (click)="sidenav.toggle()" routerLink="/clients">
-        <mat-icon mat-list-icon>people</mat-icon>
-        Клиенты
-      </a>
-    </mat-nav-list> -->
     <h3 mat-subheader>Databases</h3>
     <mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
-      <!-- Leaf node -->
       <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
-        <button mat-icon-button disabled></button>
-        {{node.item}}
-      </mat-tree-node>
-    
-      <!-- expandable node -->
-      <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
-        <button mat-icon-button
-                [attr.aria-label]="'toggle ' + node.filename"
-                (click)="loadChildren(node)"
-                matTreeNodeToggle>
-          <mat-icon class="mat-icon-rtl-mirror">
-            {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
-          </mat-icon>
-        </button>
-        {{node.item}}
-      </mat-tree-node>
-    
-      <mat-tree-node *matTreeNodeDef="let node; when: isLoadMore">
-        <button mat-button (click)="loadMore(node.loadMoreParentItem)">
-          Load more...
-        </button>
-      </mat-tree-node>
-    </mat-tree>
-    <!-- <mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
-      <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
-        <button mat-icon-button disabled>
-          <mat-icon>
-            grid_on
-          </mat-icon>
+        <button mat-icon-button>
+            <mat-icon [color]="">
+                grid_on
+            </mat-icon>
         </button>
         {{node.item}}
       </mat-tree-node>
       <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
         <button mat-icon-button
                 [attr.aria-label]="'toggle ' + node.filename" matTreeNodeToggle>
-          <mat-icon>
-            {{treeControl.isExpanded(node) ? 'cloud_queue' : 'cloud'}}
+          <mat-icon [style.color]="treeControl.isExpanded(node) ? 'black' : 'gray'">
+              storage
           </mat-icon>
         </button>
         {{node.item}}
       </mat-tree-node>
-    </mat-tree> -->
+    </mat-tree>
   </mat-sidenav>
 
   <mat-sidenav-content>
-    <!-- <div (click)="sidenav.isOpen ? sidenav.toggle() : skip()">{{sidenav.isOpen}} -->
-    <!-- <router-outlet>
-      
-    </router-outlet> -->
-    <!-- </div> -->
     <mat-form-field>
       <textarea matInput placeholder="SQL-script" [(ngModel)]="message"></textarea>
     </mat-form-field>
@@ -89,6 +41,7 @@
 
 <mat-toolbar class="my-footer">
   <div style="font-size: 12px; margin: auto;">Current Version 0.4.1 (beta)</div>
+  <a routerLink="/clients">TTTTTT</a>
 </mat-toolbar>
 <!-- </div> -->
 <!-- 

@@ -7,7 +7,18 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AppConfig } from './app.config';
 import { TcpService } from './services/tcp.service';
 import { FormsModule } from '@angular/forms';
+import { RouterModule, Routes } from '@angular/router';
 
+import { DashboardComponent } from './components/dashboard/dashboard.component';
+/*Routes */
+const appRoutes: Routes = [
+  // { path: 'settings', component: SettingsComponent },
+  // { path: 'client/:id', component: ClientComponent },
+  { path: 'dashboard', component: DashboardComponent },
+  { path: '', component: DashboardComponent },
+
+];
+/*Routes */
 
 import {
   MatCardModule,
@@ -18,7 +29,6 @@ import {
   MatDialogModule,
   MatTabsModule,
   MatTableModule,
-  MatTabHeader,
   MatIconModule,
   MatFormFieldModule,
   MatInputModule,
@@ -26,10 +36,10 @@ import {
   MatTreeModule,
   MatProgressBarModule,
   MatBadgeModule,
-  MatSidenavModule
+  MatSidenavModule,
+  MatListModule,
 
 } from '@angular/material';
-import { inspect } from 'util';
 
 @NgModule({
   exports: [
@@ -48,7 +58,8 @@ import { inspect } from 'util';
     MatTreeModule,
     MatProgressBarModule,
     MatBadgeModule,
-    MatSidenavModule
+    MatSidenavModule,
+    MatListModule
 
   ],
   declarations: []
@@ -57,7 +68,8 @@ export class MaterialModule { }
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    DashboardComponent
   ],
   imports: [
     BrowserModule,

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AppConfig } from '../app.config';
 import { TransferObject } from '../models/transfer-object';
+import { Observable } from 'rxjs';
 
 declare const Buffer
 @Injectable({
@@ -29,35 +30,8 @@ export class TcpService {
     }
 
   }
-  sendMessage(textMessage: string): any {
-    let client = new window.net.Socket();
-    client.connect(this._config.port, this._config.host, () => {
-      this.writeLog(`Client connected to ${this._config.host}:${this._config.port}`);
-      client.write(this.getLength(textMessage.length));
-      client.write(textMessage);
-      this.writeLog('Message was wrtitten');
-    });
-
-    client.on('data', (data) => {
-      console.log(`Client received: ${data}`);
-      // if (data.toString().endsWith('exit')) {
-      client.destroy();
-      // return data;
-      // }
-    });
-
-    client.on('close', () => {
-      console.log('Client closed');
-    });
-
-    client.on('error', (err) => {
-      console.error(err);
-    });
-
-  }
-
   sendMessagePromise(textMessage: string) {
-    return new Promise((resolve, reject) => {
+    return new Promise<TransferObject>((resolve, reject) => {
       let client = new window.net.Socket();
       client.connect(this._config.port, this._config.host, () => {
         this.writeLog(`Client connected to ${this._config.host}:${this._config.port}`);
@@ -68,11 +42,9 @@ export class TcpService {
 
       client.on('data', (data) => {
         console.log(`Client received: ${data}`);
-        // if (data.toString().endsWith('exit')) {
+        const dataObject: TransferObject = JSON.parse(`${data}`);
         client.destroy();
-        
-        resolve(data);
-        // }
+        resolve(dataObject);
       });
 
       client.on('close', () => {

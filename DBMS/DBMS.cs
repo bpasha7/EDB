@@ -193,10 +193,23 @@ namespace DBMS
                     to.Data = resData;
                     return to;
                 }
-                //show databases
+                //show databases tree
                 if (line.ToLower() == "/show databases")
                 {
                     var res = GetSchemes();
+                    var resData = new ResultData
+                    {
+                        DataType = ResultDataType.Message,
+                        Message = res
+                    };
+                    CommandLine.WriteInfo(res);
+                    to.Data = resData;
+                    return to;
+                }
+                //show databases sizes
+                if (line.ToLower() == "/show databases size")
+                {
+                    var res = GetDBSizes();
                     var resData = new ResultData
                     {
                         DataType = ResultDataType.Message,
@@ -336,11 +349,40 @@ namespace DBMS
                 var db = new Database(_settings.RootPath, dir.Name);
                 db.LoadTablesInfo();
                 arr.Add(new object[] { db.Name, db.Tables.Select(t => t.Name).ToArray() });
-                //arr.Add();
-
-                //hashTable.Add(db.Name, db.Tables.Select(t=>t.Name).ToArray());
             }
             var json = JsonConvert.SerializeObject(arr.ToArray(), Formatting.Indented);
+            return json.ToString();
+        }
+
+        public string GetDBSizes()
+        {
+            var dirPath = $"{_settings.RootPath}";
+            DirectoryInfo di = new DirectoryInfo(dirPath);
+
+            //var dic = new Dictionary<string, long>();
+
+            var list = new List<DatabaseSizeObject>();
+
+            foreach (var dir in di.GetDirectories())
+            {
+                string[] a = Directory.GetFiles(dir.FullName, "*.*");
+                long b = 0;
+                foreach (string name in a)
+                {
+                    // 3.
+                    // Use FileInfo to get length of each file.
+                    FileInfo info = new FileInfo(name);
+                    b += info.Length;
+                }
+                // 4.
+                // Return total size
+                list.Add(new DatabaseSizeObject
+                {
+                    Name = dir.Name,
+                    Size = b
+                });
+            }
+            var json = JsonConvert.SerializeObject(list, Formatting.Indented);
             return json.ToString();
         }
 
