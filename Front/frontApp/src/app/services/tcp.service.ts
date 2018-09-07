@@ -30,7 +30,7 @@ export class TcpService {
     }
 
   }
-  sendMessagePromise(textMessage: string) {
+  sendMessage(textMessage: string) {
     return new Promise<TransferObject>((resolve, reject) => {
       let client = new window.net.Socket();
       client.connect(this._config.port, this._config.host, () => {

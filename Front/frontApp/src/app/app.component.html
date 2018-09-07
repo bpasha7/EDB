@@ -1,6 +1,6 @@
 <mat-toolbar color="primary" class="my-header">
   <button mat-icon-button (click)="sidenav.toggle()">
-    <mat-icon >menu</mat-icon>
+    <mat-icon>menu</mat-icon>
   </button>
 </mat-toolbar>
 
@@ -11,17 +11,16 @@
     <mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
       <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
         <button mat-icon-button>
-            <mat-icon [color]="">
-                grid_on
-            </mat-icon>
+          <mat-icon [color]="">
+            grid_on
+          </mat-icon>
         </button>
         {{node.item}}
       </mat-tree-node>
       <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
-        <button mat-icon-button
-                [attr.aria-label]="'toggle ' + node.filename" matTreeNodeToggle>
+        <button mat-icon-button [attr.aria-label]="'toggle ' + node.filename" matTreeNodeToggle>
           <mat-icon [style.color]="treeControl.isExpanded(node) ? 'black' : 'gray'">
-              storage
+            storage
           </mat-icon>
         </button>
         {{node.item}}
@@ -30,18 +29,22 @@
   </mat-sidenav>
 
   <mat-sidenav-content>
-    <mat-form-field>
-      <textarea matInput placeholder="SQL-script" [(ngModel)]="message"></textarea>
-    </mat-form-field>
-  
-    <button mat-stroked-button (click)="run()">Run</button>
+    <router-outlet>
+
+      <mat-form-field>
+        <textarea matInput placeholder="SQL-script" [(ngModel)]="message"></textarea>
+      </mat-form-field>
+
+      <button mat-stroked-button (click)="run()">Run</button>
+  </router-outlet>
+
   </mat-sidenav-content>
 
 </mat-sidenav-container>
 
 <mat-toolbar class="my-footer">
   <div style="font-size: 12px; margin: auto;">Current Version 0.4.1 (beta)</div>
-  <a routerLink="/clients">TTTTTT</a>
+  <button mat-stroked-button routerLink="/dashboard">Dashboard</button>
 </mat-toolbar>
 <!-- </div> -->
 <!-- 

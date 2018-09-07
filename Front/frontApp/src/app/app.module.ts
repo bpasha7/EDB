@@ -40,6 +40,7 @@ import {
   MatListModule,
 
 } from '@angular/material';
+import { ViewTableComponent } from './components/view-table/view-table.component';
 
 @NgModule({
   exports: [
@@ -62,7 +63,7 @@ import {
     MatListModule
 
   ],
-  declarations: []
+  declarations: [ViewTableComponent]
 })
 export class MaterialModule { }
 
@@ -72,6 +73,9 @@ export class MaterialModule { }
     DashboardComponent
   ],
   imports: [
+    RouterModule.forRoot(
+      appRoutes
+    ),
     BrowserModule,
     BrowserAnimationsModule,
     MaterialModule,

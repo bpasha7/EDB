@@ -8,7 +8,7 @@ import { TcpService } from '../../services/tcp.service';
 })
 export class DashboardComponent implements OnInit {
 
-  data: any = {};
+  data: any = [];
   constructor(
     private tcpService: TcpService
   ) { }
@@ -18,7 +18,7 @@ export class DashboardComponent implements OnInit {
   }
 
   loadDatabaseSizes() {
-    this.tcpService.sendMessagePromise('/show databases size').then(res => {
+    this.tcpService.sendMessage('/show databases size').then(res => {
       this.data = JSON.parse(res.Data.Message);
     });
   }

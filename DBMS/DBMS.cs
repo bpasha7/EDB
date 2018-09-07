@@ -257,12 +257,23 @@ namespace DBMS
 #warning 'Rewrite condition'
                 if (words[0].ToLower() == "select")
                 {
+#if Debug
+                    ChangeDatabase("DBtest");
+#endif
                     string info = "";
                     _logger.LogInformation($"Read command: [{line}].");
                     var res = _currentDatabase?.SelectFromTable(words, out info);
                     CommandLine.ShowData(res);
                     _logger.LogInformation($"{info}.");
                     CommandLine.WriteInfo(info);
+                    res.DataType = ResultDataType.DataSet;
+                    var resData = new ResultData
+                    {
+                        DataType = ResultDataType.Message,
+                        Message = JsonConvert.SerializeObject(res, Formatting.Indented)
+                };
+                    to.Data = resData;
+                    return to;
                 }
                 return to;
             }
@@ -379,7 +390,7 @@ namespace DBMS
                 list.Add(new DatabaseSizeObject
                 {
                     Name = dir.Name,
-                    Size = b
+                    Size = b / 1024
                 });
             }
             var json = JsonConvert.SerializeObject(list, Formatting.Indented);

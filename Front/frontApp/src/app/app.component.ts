@@ -115,9 +115,8 @@ export class AppComponent {
     private tcpService: TcpService,
     private database: DynamicDatabase
   ) {
-    this.treeControl = new FlatTreeControl<DynamicFlatNode>(this.getLevel, this.isExpandable);
 
-    this.tcpService.sendMessagePromise('/show databases').then(res => {
+    this.tcpService.sendMessage('/show databases').then(res => {
       this.dataSource = new DynamicDataSource(this.treeControl, database);
       database.dataMap = new Map<string, string[]>(JSON.parse(res.Data.Message));
       this.dataSource.data = database.initialData();
