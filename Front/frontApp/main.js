@@ -2,6 +2,9 @@ const { app, BrowserWindow } = require('electron')
 
 let win;
 
+// Enable live reload for Electron too
+require('electron-reload')(__dirname);
+
 function createWindow () {
   // Create the browser window.
   win = new BrowserWindow({
