@@ -8,7 +8,7 @@ import {map} from 'rxjs/operators';
 
 /** Flat node with expandable and level information */
 export class DynamicFlatNode {
-  constructor(public item: string, public level = 1, public expandable = false) {}
+  constructor(public item: string, public level = 1, public expandable = false, public parent = '') {}
 }
 
 /**
@@ -87,7 +87,7 @@ export class DynamicDataSource {
     }
       if (expand) {
         const nodes = children.map(name =>
-          new DynamicFlatNode(name, node.level + 1, this.database.isExpandable(name)));
+          new DynamicFlatNode(name, node.level + 1, this.database.isExpandable(name), node.item));
         this.data.splice(index + 1, 0, ...nodes);
       } else {
         let count = 0;

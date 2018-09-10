@@ -15,62 +15,103 @@ const appRoutes: Routes = [
   // { path: 'settings', component: SettingsComponent },
   // { path: 'client/:id', component: ClientComponent },
   { path: 'dashboard', component: DashboardComponent },
+  { path: 'db/:db/:table', component: ViewTableComponent },
   { path: '', component: DashboardComponent },
 
 ];
 /*Routes */
 
 import {
-  MatCardModule,
-  MatButtonModule,
-  MatChipsModule,
-  MatToolbarModule,
-  MatGridListModule,
-  MatDialogModule,
-  MatTabsModule,
-  MatTableModule,
-  MatIconModule,
-  MatFormFieldModule,
-  MatInputModule,
-  MatSnackBarModule,
-  MatTreeModule,
-  MatProgressBarModule,
+  MatAutocompleteModule,
   MatBadgeModule,
-  MatSidenavModule,
+  MatBottomSheetModule,
+  MatButtonModule,
+  MatButtonToggleModule,
+  MatCardModule,
+  MatCheckboxModule,
+  MatChipsModule,
+  MatDatepickerModule,
+  MatDialogModule,
+  MatDividerModule,
+  MatExpansionModule,
+  MatGridListModule,
+  MatIconModule,
+  MatInputModule,
   MatListModule,
+  MatMenuModule,
+  MatNativeDateModule,
+  MatPaginatorModule,
+  MatProgressBarModule,
+  MatProgressSpinnerModule,
+  MatRadioModule,
+  MatRippleModule,
+  MatSelectModule,
+  MatSidenavModule,
+  MatSliderModule,
+  MatSlideToggleModule,
+  MatSnackBarModule,
+  MatSortModule,
+  MatStepperModule,
+  MatTableModule,
+  MatTabsModule,
+  MatToolbarModule,
+  MatTooltipModule,
+  MatTreeModule,
 
 } from '@angular/material';
 import { ViewTableComponent } from './components/view-table/view-table.component';
+import { CdkTableModule } from '@angular/cdk/table';
+import { CdkTreeModule } from '@angular/cdk/tree';
 
 @NgModule({
   exports: [
-    MatCardModule,
-    MatGridListModule,
-    MatButtonModule,
-    MatChipsModule,
-    MatToolbarModule,
-    MatDialogModule,
-    MatTabsModule,
-    MatTableModule,
-    MatIconModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSnackBarModule,
-    MatTreeModule,
-    MatProgressBarModule,
-    MatBadgeModule,
-    MatSidenavModule,
-    MatListModule
 
+    CdkTreeModule,
+    MatAutocompleteModule,
+    MatBadgeModule,
+    MatBottomSheetModule,
+    MatButtonModule,
+    MatButtonToggleModule,
+    MatCardModule,
+    MatCheckboxModule,
+    MatChipsModule,
+    MatStepperModule,
+    MatDatepickerModule,
+    MatDialogModule,
+    MatDividerModule,
+    MatExpansionModule,
+    MatGridListModule,
+    MatIconModule,
+    MatInputModule,
+    MatListModule,
+    MatMenuModule,
+    MatNativeDateModule,
+    MatPaginatorModule,
+    MatProgressBarModule,
+    MatProgressSpinnerModule,
+    MatRadioModule,
+    MatRippleModule,
+    MatSelectModule,
+    MatSidenavModule,
+    MatSliderModule,
+    MatSlideToggleModule,
+    MatSnackBarModule,
+    MatSortModule,
+    MatTableModule,
+    MatTabsModule,
+    MatToolbarModule,
+    MatTooltipModule,
+    MatTreeModule,
   ],
-  declarations: [ViewTableComponent]
+  declarations: []
 })
 export class MaterialModule { }
 
 @NgModule({
   declarations: [
     AppComponent,
-    DashboardComponent
+    DashboardComponent,
+    ViewTableComponent
   ],
   imports: [
     RouterModule.forRoot(

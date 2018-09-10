@@ -6,6 +6,8 @@ export class ErrorData {
 export class ResultData {
     DataType: number;
     Message: string;
+    Values: any[];
+    Headers: string[];
 }
 
 export class TransferObject {

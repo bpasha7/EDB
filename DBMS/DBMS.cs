@@ -61,6 +61,8 @@ namespace DBMS
             CommandLine.Location = "EDB";
             //CommandLine.WriteError(_settings.Authors);
             _stopwatch.Start();
+            var t = new Task(() => ReadCommands());
+            t.Start();
             Listen();
             //ReadCommands();
         }
@@ -269,8 +271,10 @@ namespace DBMS
                     res.DataType = ResultDataType.DataSet;
                     var resData = new ResultData
                     {
-                        DataType = ResultDataType.Message,
-                        Message = JsonConvert.SerializeObject(res, Formatting.Indented)
+                        DataType = ResultDataType.DataSet,
+                        Headers = res.Headers,
+                        Values = res.Values
+                        //Message = JsonConvert.SerializeObject(res, Formatting.Indented)
                 };
                     to.Data = resData;
                     return to;
