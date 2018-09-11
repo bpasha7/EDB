@@ -1,9 +1,12 @@
+'use strict';
 const { app, BrowserWindow } = require('electron')
 
 let win;
 
 // Enable live reload for Electron too
-require('electron-reload')(__dirname);
+// require('electron-reload')(`${__dirname}/dist/fontApp`, {
+//   electron: require(`${__dirname}/node_modules/electron`) 
+// }) 
 
 function createWindow () {
   // Create the browser window.
@@ -13,7 +16,7 @@ function createWindow () {
     backgroundColor: '#ffffff',
     icon: `file://${__dirname}/dist/assets/logo.png`
   })
-
+  process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
 
    const basepath = app.getAppPath();
   win.loadURL(`file://${basepath}/dist/frontApp/index.html`)

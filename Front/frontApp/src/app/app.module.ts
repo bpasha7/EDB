@@ -1,12 +1,13 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
+import { ChartsModule } from 'ng2-charts';
 
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AppConfig } from './app.config';
 import { TcpService } from './services/tcp.service';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule, Routes } from '@angular/router';
 
 import { DashboardComponent } from './components/dashboard/dashboard.component';
@@ -65,7 +66,7 @@ import { CdkTreeModule } from '@angular/cdk/tree';
 
 @NgModule({
   exports: [
-
+    CdkTableModule,
     CdkTreeModule,
     MatAutocompleteModule,
     MatBadgeModule,
@@ -120,7 +121,9 @@ export class MaterialModule { }
     BrowserModule,
     BrowserAnimationsModule,
     MaterialModule,
-    FormsModule
+    FormsModule,
+    ReactiveFormsModule,
+    ChartsModule
   ],
   providers: [
     AppConfig,

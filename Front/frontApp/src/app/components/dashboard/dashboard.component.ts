@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { TcpService } from '../../services/tcp.service';
+import { PingService } from '../../services/ping.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -7,10 +8,17 @@ import { TcpService } from '../../services/tcp.service';
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
-
+  public lineChartData:Array<any> = [
+    {data: [0, 0], label: 'Ping'},
+  ];
+  public lineChartLabels:Array<Date> = [];
+  public lineChartOptions:any = {
+    responsive: true
+  };
   data: any = [];
   constructor(
-    private tcpService: TcpService
+    private tcpService: TcpService,
+    private pingService: PingService
   ) { }
 
   ngOnInit() {
@@ -21,6 +29,7 @@ export class DashboardComponent implements OnInit {
     this.tcpService.sendMessage('/show databases size').then(res => {
       this.data = JSON.parse(res.Data.Message);
     });
+    this.pingService.pingServer();
   }
 
 }

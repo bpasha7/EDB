@@ -31,12 +31,7 @@
   <mat-sidenav-content>
     <router-outlet>
 
-      <mat-form-field>
-        <textarea matInput placeholder="SQL-script" [(ngModel)]="message"></textarea>
-      </mat-form-field>
-
-      <button mat-stroked-button (click)="run()">Run</button>
-  </router-outlet>
+    </router-outlet>
 
   </mat-sidenav-content>
 
@@ -46,6 +41,7 @@
   <div style="font-size: 12px; margin: auto;">Current Version 0.4.1 (beta)</div>
   <button mat-stroked-button routerLink="/dashboard">Dashboard</button>
   <button mat-stroked-button routerLink="/db/work/emp">Test</button>
+  <button mat-stroked-button (click)="loadTree()">Tree</button>
 </mat-toolbar>
 <!-- </div> -->
 <!-- 

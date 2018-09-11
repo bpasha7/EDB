@@ -19,7 +19,8 @@ export class DynamicDatabase {
   dataMap = new Map<string, string[]>([
   ]);
 
-  rootLevelNodes: string[] = ['DBtest', 'DBstud'];
+
+  rootLevelNodes: string[] = ['dbtest', 'DBstud', 'work' ];
 
   /** Initial data from database */
   initialData(): DynamicFlatNode[] {
@@ -115,11 +116,22 @@ export class AppComponent {
     private tcpService: TcpService,
     private database: DynamicDatabase
   ) {
+    this.treeControl = new FlatTreeControl<DynamicFlatNode>(this.getLevel, this.isExpandable);
+    this.dataSource = new DynamicDataSource(this.treeControl, database);
 
+    this.dataSource.data = database.initialData();
+    // this.tcpService.sendMessage('/show databases').then(res => {
+    //   this.dataSource = new DynamicDataSource(this.treeControl, database);
+    //   database.dataMap = new Map<string, string[]>(JSON.parse(res.Data.Message));
+    //   this.dataSource.data = database.initialData();
+    // });
+  }
+
+  loadTree() {
     this.tcpService.sendMessage('/show databases').then(res => {
-      this.dataSource = new DynamicDataSource(this.treeControl, database);
-      database.dataMap = new Map<string, string[]>(JSON.parse(res.Data.Message));
-      this.dataSource.data = database.initialData();
+      // this.dataSource = new DynamicDataSource(this.treeControl, this.database);
+      this.database.dataMap = new Map<string, string[]>(JSON.parse(res.Data.Message));
+      this.dataSource.data = this.database.initialData();
     });
   }
   treeControl: FlatTreeControl<DynamicFlatNode>;

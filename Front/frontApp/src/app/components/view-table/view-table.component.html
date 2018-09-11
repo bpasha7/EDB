@@ -2,6 +2,13 @@
 <button mat-raised-button (click)="removeColumn()"> Remove column </button>
 <button mat-raised-button (click)="shuffle()"> Shuffle </button> -->
 
+
+<mat-form-field style="width: 100%">
+  <textarea matInput placeholder="SQL-script" [(ngModel)]="message"></textarea>
+</mat-form-field>
+
+<button mat-stroked-button (click)="run()">Run</button>
+
 <table mat-table [dataSource]="data" class="" style="width: 100%">
   <ng-container [matColumnDef]="column" *ngFor="let column of displayedColumns">
     <th mat-header-cell *matHeaderCellDef> {{column}} </th>

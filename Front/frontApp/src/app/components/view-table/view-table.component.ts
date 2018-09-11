@@ -11,6 +11,7 @@ export class ViewTableComponent implements OnInit {
   displayedColumns: string[] = [];
   columnsToDisplay: string[] = [];
   data: any[] = [];
+  message = '';
   db = '';
   table = '';
   constructor(
@@ -24,7 +25,8 @@ export class ViewTableComponent implements OnInit {
       this.db = params['db']
       this.table = params['table']
       this.tcpService.sendMessage("# " + this.db).then(res => {
-        this.tcpService.sendMessage("select * from emp").then(res2 => {
+        this.tcpService.sendMessage("select * from "+this.table).then(res2 => {
+          this.data = [];
           const rows = res2.Data.Values;
           this.displayedColumns = res2.Data.Headers;
           rows.forEach(row => {
@@ -36,6 +38,24 @@ export class ViewTableComponent implements OnInit {
           });
           this.columnsToDisplay = this.displayedColumns.slice();
         });
+      });
+    });
+  }
+
+  run() {
+    this.tcpService.sendMessage("# " + this.db).then(res => {
+      this.tcpService.sendMessage(this.message).then(res2 => {
+        this.data = [];
+        const rows = res2.Data.Values;
+        this.displayedColumns = res2.Data.Headers;
+        rows.forEach(row => {
+          let dataRow = {};
+          for (let index = 0; index < this.displayedColumns.length; index++) {
+            dataRow[this.displayedColumns[index]] = row[index];
+          }
+          this.data.push(dataRow);
+        });
+        this.columnsToDisplay = this.displayedColumns.slice();
       });
     });
   }
