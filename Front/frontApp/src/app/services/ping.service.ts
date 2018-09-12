@@ -10,10 +10,18 @@ export class PingService {
     private _config: AppConfig,
   ) { }
 
-  pingServer() {
-    window.ping.promise.probe(this._config.host)
-      .then(function (res) {
-        console.log(res);
-      });
+  pingServer():Promise<number> {
+    return new Promise<number>((resolve, reject) => {
+      window.ping.ping(
+        { address: this._config.host, port: 80, attempts: 5 }, function (data) {
+          console.log(data);
+          if (data[0].results.length >= 1) {
+            resolve(data[0].results[2].time);
+          }
+          else {
+            reject(-1);
+          }
+        });
+    });
   }
 }

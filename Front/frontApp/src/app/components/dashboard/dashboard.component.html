@@ -1,20 +1,19 @@
-<mat-card>
+<mat-card class="content-card">
 <mat-list>
   <h3 mat-subheader>Databases size</h3>
-  <mat-list-item *ngFor="let db of data">
+  <mat-list-item *ngFor="let db of databases">
     <mat-icon mat-list-icon>storage</mat-icon>
     <h4 mat-line>{{db.Name}}</h4>
     <p mat-line> {{db.Size}} Kbytes</p>
   </mat-list-item>
 </mat-list>
 </mat-card>
-<mat-card>
-<canvas baseChart width="400" height="400"
+<mat-card class="content-card">
+<canvas baseChart width="200" height="200"
                 [datasets]="lineChartData"
                 [labels]="lineChartLabels"
                 [options]="lineChartOptions"
                 [legend]="false"
                 [chartType]="'line'"
-                (chartHover)="chartHovered($event)"
-                (chartClick)="chartClicked($event)"></canvas>
+                ></canvas>
               </mat-card>
