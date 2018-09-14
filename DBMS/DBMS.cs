@@ -106,7 +106,7 @@ namespace DBMS
         private TcpListener _listener;
         public void Listen()
         {
-            _listener = new TcpListener(IPAddress.Parse("127.0.0.1"), 4444);
+            _listener = new TcpListener(IPAddress.Parse(_settings.Ip), _settings.Port);
             //_semaphore 
             var task = new Task(() =>
             {
@@ -259,9 +259,9 @@ namespace DBMS
 #warning 'Rewrite condition'
                 if (words[0].ToLower() == "select")
                 {
-#if Debug
-                    ChangeDatabase("DBtest");
-#endif
+//#if Debug
+//                    ChangeDatabase("DBtest");
+//#endif
                     string info = "";
                     _logger.LogInformation($"Read command: [{line}].");
                     var res = _currentDatabase?.SelectFromTable(words, out info);
@@ -277,6 +277,7 @@ namespace DBMS
                         //Message = JsonConvert.SerializeObject(res, Formatting.Indented)
                 };
                     to.Data = resData;
+                    to.Time = info;
                     return to;
                 }
                 return to;

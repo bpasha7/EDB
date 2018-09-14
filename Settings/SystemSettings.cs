@@ -10,5 +10,8 @@ namespace Settings
         public string Authors { get; set; }
         public string RootPath { get; set; }
         public string Version { get; set; }
+        public string Ip { get; set; }
+        public int Port { get; set; }
+
     }
 }

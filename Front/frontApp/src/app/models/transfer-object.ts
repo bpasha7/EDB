@@ -13,5 +13,5 @@ export class ResultData {
 export class TransferObject {
     Error: ErrorData;
     Data: ResultData;
-    Time: Time;
+    Time: string;
 }

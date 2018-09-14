@@ -3,5 +3,7 @@
   //"RootPath": "D:\\workspaces\\EDB\\EDB\\bin\\Debug\\netcoreapp2.0\\",
   //"RootPath": "C:\\Users\\bpash\\Documents\\workspace\\EDB\\EDB\\bin\\Debug\\netcoreapp2.0\\"
   "RootPath": "C:\\temp\\dbms\\",
-  "Version":  "v0.0.5"
+  "Version": "v0.0.5",
+  "Port": 4444,
+  "Ip" : "127.0.0.1"
 }
