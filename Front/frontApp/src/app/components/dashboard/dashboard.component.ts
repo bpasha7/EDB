@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { TcpService } from '../../services/tcp.service';
 import { PingService } from '../../services/ping.service';
 import { DatePipe } from '@angular/common';
@@ -10,13 +10,13 @@ import { BaseChartDirective } from 'ng2-charts';
   styleUrls: ['./dashboard.component.css'],
   providers: [DatePipe]
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   public lineChartData: Array<any> = [{ data: [], label: '' }];
   public lineChartLabels: string[] = [];
   private pingTimes: string[] = [];
   private pingResult: number[] = [];
-  @ViewChild("baseChart") pingChart: BaseChartDirective;
-  // _chart.ngOnChanges()
+  private timer: any;
+  @ViewChild('baseChart') pingChart: BaseChartDirective;
   public lineChartOptions: any = {
     responsive: true,
     events: []
@@ -31,10 +31,14 @@ export class DashboardComponent implements OnInit {
   ngOnInit() {
     this.loadDatabaseSizes();
 
-    setInterval(() => {
+    this.timer = setInterval(() => {
       this.updateChart();
     }, 3000);
 
+  }
+
+  ngOnDestroy() {
+    clearInterval(this.timer);
   }
 
   loadDatabaseSizes() {
@@ -46,38 +50,17 @@ export class DashboardComponent implements OnInit {
   updateChart() {
     this.pingService.pingServer().then(sec => {
       if (sec !== undefined) {
-        // if(this.pingTimes.length > 15) {
-        //   this.pingResult.shift();
-        //   this.pingTimes.shift();
-        // }
-        // this.pingResult.push(Math.floor(sec));
-        // this.pingTimes.push(this.datepipe.transform(Date.now(), 'mm:ss'));
-        // this.lineChartData[0] = [{data: this.pingResult, label: 'Ping, ms'}];
-        // this.lineChartLabels = this.pingTimes;
         if (this.lineChartData[0].data.length > 15) {
           this.lineChartData[0].data.shift();
-          // this.lineChartData[0].data = [];
-          // this.lineChartLabels = [];
           this.lineChartLabels.shift();
-
         }
         this.lineChartData[0].data.push(Math.floor(sec));
         this.lineChartLabels.push(this.datepipe.transform(Date.now(), 'mm:ss'));
-        // this.pingChart.ngOnChanges;
         if (this.pingChart !== undefined) {
           this.pingChart.ngOnDestroy();
           this.pingChart.chart = this.pingChart.getChartBuilder(this.pingChart.ctx);
         }
-        // let data = this.lineChartData[0].data;
-        // data.push(this.counter++);
-        // this.lineChartData = [{data: data, label: 'test'}];
-        // this.lineChartLabels.push('f'+this.counter++);
       }
-    })
+    });
   }
-
-  // ngOnDestroy(){
-  //   this.killTrigger.next();
-  // }
-
 }

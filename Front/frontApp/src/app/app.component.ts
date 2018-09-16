@@ -20,7 +20,7 @@ export class DynamicDatabase {
   ]);
 
 
-  rootLevelNodes: string[] = ['dbtest', 'DBstud', 'work' ];
+  rootLevelNodes: string[] = [];//'dbtest', 'DBstud', 'work' 
 
   /** Initial data from database */
   initialData(): DynamicFlatNode[] {
@@ -111,6 +111,9 @@ export class DynamicDataSource {
 export class AppComponent {
   title = 'frontApp';
   message = '/info';
+  treeControl: FlatTreeControl<DynamicFlatNode>;
+
+  dataSource: DynamicDataSource;
 
   constructor(
     private tcpService: TcpService,
@@ -120,36 +123,25 @@ export class AppComponent {
     this.dataSource = new DynamicDataSource(this.treeControl, database);
 
     this.dataSource.data = database.initialData();
-    // this.tcpService.sendMessage('/show databases').then(res => {
-    //   this.dataSource = new DynamicDataSource(this.treeControl, database);
-    //   database.dataMap = new Map<string, string[]>(JSON.parse(res.Data.Message));
-    //   this.dataSource.data = database.initialData();
-    // });
   }
 
   loadTree() {
     this.tcpService.sendMessage('/show databases').then(res => {
-      // this.dataSource = new DynamicDataSource(this.treeControl, this.database);
-      this.database.dataMap = new Map<string, string[]>(JSON.parse(res.Data.Message));
+      const treeNodes = JSON.parse(res.Data.Message);
+      this.database.rootLevelNodes = [];
+      treeNodes.forEach(element => {
+        this.database.rootLevelNodes.push(element[0]);
+      });
+      this.database.dataMap = new Map<string, string[]>(treeNodes);
+
+
       this.dataSource.data = this.database.initialData();
     });
   }
-  treeControl: FlatTreeControl<DynamicFlatNode>;
-
-  dataSource: DynamicDataSource;
 
   getLevel = (node: DynamicFlatNode) => node.level;
 
   isExpandable = (node: DynamicFlatNode) => node.expandable;
 
   hasChild = (_: number, _nodeData: DynamicFlatNode) => _nodeData.expandable;
-
-
-  // run() {
-  //   this.tcpService.sendMessagePromise('/show databases').then(res => {
-  //     const dataObject: TransferObject = JSON.parse(`${res}`);
-      
-  //   });
-  // }
-
 }
