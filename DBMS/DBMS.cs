@@ -106,7 +106,7 @@ namespace DBMS
         private TcpListener _listener;
         public void Listen()
         {
-            _listener = new TcpListener(IPAddress.Parse(_settings.Ip), _settings.Port);
+            _listener = new TcpListener(IPAddress.Any, _settings.Port);
             //_semaphore 
             var task = new Task(() =>
             {
