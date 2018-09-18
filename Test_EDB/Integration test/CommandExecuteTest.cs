@@ -65,13 +65,13 @@ namespace Test_EDB.Integration_test
         [Fact]
         public void InsertIntoIndexTableTest()
         {
-            string path = "C:\\temp\\", name = "test";
+            string path = "C:\\temp\\dbms\\", name = "work";
             var db = new Database(path, name);
             //var db2 = new Database(path, name+"1");
-            for (int i = 0; i < 1000; i++)
+            for (int i = 0; i < 500; i++)
             {
                 var rnd = new Random();
-                var query = $"insert into test1 Values ({rnd.Next(-1000, 1000)}, '{randomString(10, rnd)}', {rnd.Next(0, 1)})";
+                var query = $"insert into stud Values ({rnd.Next(-1000, 1000)}, '{randomString(10, rnd)}', {rnd.Next(0, 1)})";
                 db.InsertIntoTable(query);
 
             }

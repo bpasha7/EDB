@@ -1,5 +1,13 @@
-.content-card {
-    width: 40%;
-    display: inline-block;
-    height: 350px;
+.chart-card {
+    width: 60%;
+}
+.info-card {
+    width: 60%;
+}
+.dashboard-container {
+    display: flex;
+    align-items: self-start;
+    margin: auto;
+    width: -webkit-fill-available;
+    padding: 5px;
 }

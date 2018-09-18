@@ -38,18 +38,41 @@ export class TcpService {
         client.write(textMessage);
         this.writeLog('Message was wrtitten');
       });
-      let recived = '';
-      client.on('data', (data) => {
-        console.log(`Client received: ${data}`);
-        // const size = data;
-        // while(recived.length != size)
-        //   recived += data;
-        client.destroy();
-        const dataObject: TransferObject = JSON.parse(`${data}`);
-        resolve(dataObject);
+
+    let buffered = '';
+    // const socket = net.createConnection({ port: 8000, host: 'localhost' });
+    client.on('connect', () => {
+      client.on('data', data => {
+        console.log(data.length);
+        buffered += data;
+        // processReceived();
       });
+    });
+
+    // function processReceived() {
+    //   let received = buffered.split('\n');
+    //   while (received.length > 1) {
+    //     console.log(received[0]);
+    //     buffered = received.slice(1).join('\n');
+    //     received = buffered.split('\n');
+    //   }
+    // }
+
+
+      // let recived = '';
+      // client.on('data', (data) => {
+      //   console.log(`Client received: ${data}`);
+      //   // const size = data;
+      //   // while(recived.length != size)
+      //   //   recived += data;
+      //   client.destroy();
+      //   const dataObject: TransferObject = JSON.parse(`${data}`);
+      //   resolve(dataObject);
+      // });
 
       client.on('close', () => {
+        const dataObject: TransferObject = JSON.parse(`${buffered}`);
+        resolve(dataObject);
         console.log('Client closed');
       });
 

@@ -1,5 +1,5 @@
-<div>
-  <mat-card class="content-card">
+<div class="dashboard-container">
+  <mat-card class="info-card">
     <mat-list>
       <h3 mat-subheader>Databases size</h3>
       <mat-list-item *ngFor="let db of databases">
@@ -9,8 +9,8 @@
       </mat-list-item>
     </mat-list>
   </mat-card>
-  <mat-card class="content-card">
-    <canvas #baseChart="base-chart" baseChart width="200" height="200" [datasets]="lineChartData" [labels]="lineChartLabels"
+  <mat-card class="chart-card">
+    <canvas style="height: 300px;" #baseChart="base-chart" baseChart width="200" height="200" [datasets]="lineChartData" [labels]="lineChartLabels"
       [options]="lineChartOptions" [legend]="false" [chartType]="'line'"></canvas>
   </mat-card>
 </div>
