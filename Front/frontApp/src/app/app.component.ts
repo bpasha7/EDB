@@ -123,6 +123,7 @@ export class AppComponent {
     this.dataSource = new DynamicDataSource(this.treeControl, database);
 
     this.dataSource.data = database.initialData();
+    this.loadTree();
   }
 
   loadTree() {
@@ -133,8 +134,6 @@ export class AppComponent {
         this.database.rootLevelNodes.push(element[0]);
       });
       this.database.dataMap = new Map<string, string[]>(treeNodes);
-
-
       this.dataSource.data = this.database.initialData();
     });
   }

@@ -23,8 +23,7 @@ export class TcpService {
     if (this._config.logging) {
       if (error) {
         console.error(text);
-      }
-      else {
+      } else {
         console.log(text);
       }
     }
@@ -38,7 +37,7 @@ export class TcpService {
         client.write(this.getLength(textMessage.length));
         client.write(textMessage);
         this.writeLog('Message was wrtitten');
-      })
+      });
       let recived = '';
       client.on('data', (data) => {
         console.log(`Client received: ${data}`);

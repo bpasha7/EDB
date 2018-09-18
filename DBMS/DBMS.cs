@@ -254,6 +254,13 @@ namespace DBMS
                     var res = _currentDatabase?.InsertIntoTable(line);
                     _logger.LogInformation($"{res}.");
                     CommandLine.WriteInfo(res);
+                    var resData = new ResultData
+                    {
+                        Message = JsonConvert.SerializeObject(res, Formatting.Indented),
+                        DataType = ResultDataType.Message
+                    };
+                    to.Data = resData;
+                    return to;
                 }
                 // if select from
 #warning 'Rewrite condition'
@@ -275,7 +282,7 @@ namespace DBMS
                         Headers = res.Headers,
                         Values = res.Values
                         //Message = JsonConvert.SerializeObject(res, Formatting.Indented)
-                };
+                    };
                     to.Data = resData;
                     to.Time = info;
                     return to;
