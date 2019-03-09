@@ -15,7 +15,7 @@ namespace Test_EDB.Integration_test
         [Fact]
         public void CreateAndInsertTest()
         {
-            string path = "C:\\temp\\", name = "test";
+            string path = "C:\\temp\\dbms\\", name = "test";
             var db = new Database(path, name);
             //var createQuery = $"create table stud (Id int, Name varchar(100), Flag bit, Date datetime)";
             //db.CreateTable(createQuery);
@@ -52,7 +52,7 @@ namespace Test_EDB.Integration_test
         [Fact]
         public void InsertTest()
         {
-            string path = "C:\\temp\\", name = "test";
+            string path = "C:\\temp\\dbms\\", name = "test";
             var db = new Database(path, name);
             for (int i = 0; i < 1000; i++)
             {

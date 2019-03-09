@@ -42,9 +42,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   loadDatabaseSizes() {
-    this.tcpService.sendMessage('/show databases size').then(res => {
+    /*this.tcpService.sendMessage('/show databases size').then(res => {
       this.databases = JSON.parse(res.Data.Message);
-    });
+    });*/
   }
 
   updateChart() {

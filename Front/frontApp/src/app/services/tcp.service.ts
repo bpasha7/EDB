@@ -9,14 +9,16 @@ declare const Buffer
 })
 export class TcpService {
 
-  private client: any;
+  private readonly socket: any; 
   private host = '';
   private port = 0;
   constructor(
     private _config: AppConfig
   ) {
-    this.writeLog('Init TcpService');
-    this.client = new window.net.Socket();
+    this.host = this._config.host;
+    this.port = this._config.port;
+    this.socket = new window.net.Socket();
+    this.writeLog(`Init TcpService for ${this._config.host}:${this._config.port}`);
   }
 
   private writeLog(text: string, error: boolean = false): void {
@@ -29,7 +31,24 @@ export class TcpService {
     }
 
   }
-  sendMessage(textMessage: string) {
+
+  async send(textMessage: string) {
+    debugger;
+    const promiseSocket = new window.promiseSocket.PromiseSocket(this.socket);
+    await promiseSocket.connect(this.port, this.host);
+
+    await promiseSocket.write(this.getLength(textMessage.length));
+    await promiseSocket.write(textMessage);
+
+    const content = await promiseSocket.readAll()
+
+    await promiseSocket.end();
+    promiseSocket.destroy();
+
+    return JSON.parse(content);
+  }
+
+  /*sendMessage(textMessage: string) {
     return new Promise<TransferObject>((resolve, reject) => {
       let client = new window.net.Socket();
       client.connect(this._config.port, this._config.host, () => {
@@ -42,33 +61,13 @@ export class TcpService {
     let buffered = '';
     // const socket = net.createConnection({ port: 8000, host: 'localhost' });
     client.on('connect', () => {
+      this.writeLog('TCP Connected');
       client.on('data', data => {
         console.log(data.length);
         buffered += data;
         // processReceived();
       });
     });
-
-    // function processReceived() {
-    //   let received = buffered.split('\n');
-    //   while (received.length > 1) {
-    //     console.log(received[0]);
-    //     buffered = received.slice(1).join('\n');
-    //     received = buffered.split('\n');
-    //   }
-    // }
-
-
-      // let recived = '';
-      // client.on('data', (data) => {
-      //   console.log(`Client received: ${data}`);
-      //   // const size = data;
-      //   // while(recived.length != size)
-      //   //   recived += data;
-      //   client.destroy();
-      //   const dataObject: TransferObject = JSON.parse(`${data}`);
-      //   resolve(dataObject);
-      // });
 
       client.on('close', () => {
         const dataObject: TransferObject = JSON.parse(`${buffered}`);
@@ -81,7 +80,7 @@ export class TcpService {
       });
     }
     );
-  }
+  }*/
 
   /**
    * Get bytes of message length

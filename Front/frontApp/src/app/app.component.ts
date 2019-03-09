@@ -126,8 +126,16 @@ export class AppComponent {
     this.loadTree();
   }
 
-  loadTree() {
-    this.tcpService.sendMessage('/show databases').then(res => {
+  async loadTree() {
+    const data = await this.tcpService.send('/show databases');
+    const treeNodes = JSON.parse(data.Data.Message);
+    this.database.rootLevelNodes = [];
+    treeNodes.forEach(element => {
+      this.database.rootLevelNodes.push(element[0]);
+    });
+    this.database.dataMap = new Map<string, string[]>(treeNodes);
+    this.dataSource.data = this.database.initialData();
+    /*this.tcpService.sendMessage('/show databases').then(res => {
       const treeNodes = JSON.parse(res.Data.Message);
       this.database.rootLevelNodes = [];
       treeNodes.forEach(element => {
@@ -135,7 +143,7 @@ export class AppComponent {
       });
       this.database.dataMap = new Map<string, string[]>(treeNodes);
       this.dataSource.data = this.database.initialData();
-    });
+    });*/
   }
 
   getLevel = (node: DynamicFlatNode) => node.level;

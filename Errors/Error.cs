@@ -7,16 +7,17 @@ namespace Errors
     /// </summary>
     public class Error : Exception
     {
-        private string _message;
-        private int _code;
+        private readonly string _message;
+        private readonly int _code;
+        private readonly DateTime _date;
         /// <summary>
         /// Error message
         /// </summary>
-        public string Message { get => _message; set => _message = value; }
+        public string Message { get => _message; }
         /// <summary>
         /// Error code
         /// </summary>
-        public int Code { get => _code; set => _code = value; }
+        public int Code { get => _code; }
         /// <summary>
         /// Constructor of error
         /// </summary>
@@ -26,11 +27,12 @@ namespace Errors
         {
             _message = message;
             _code = code;
+            _date = DateTime.Now;
         }
         public override string ToString()
         {
             var code = _code != 0 ? $"{_code}: " : "";
-            return $"{code}{_message}";
+            return $"[{_date}] {code}{_message}";
         }
     }
 }

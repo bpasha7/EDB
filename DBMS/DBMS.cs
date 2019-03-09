@@ -17,6 +17,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
@@ -134,7 +135,7 @@ namespace DBMS
                                 bytes = new byte[length];
                                 ns.Read(bytes, 0, length);
                             }
-                            var line = System.Text.ASCIIEncoding.UTF8.GetString(bytes, 0, length);
+                            var line = length == 0 ? "" : Encoding.UTF8.GetString(bytes, 0, length);
 
                             var res = ReadCommand(line);
                             var json = JsonConvert.SerializeObject(res, Formatting.Indented);
