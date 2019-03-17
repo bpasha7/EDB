@@ -11,6 +11,10 @@ namespace DML.Commands
         /// Table Name
         /// </summary>
         public string TableName { get; set; }
+        /// <summary>
+        /// DatabaseName
+        /// </summary>
+        public string DatabaseName { get; set; }
 
         protected string[] cutLastBracketsArguments(ref string query)
         {

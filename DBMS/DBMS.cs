@@ -1,5 +1,6 @@
 ﻿using BinaryFileStream;
 using Console;
+using DBMS.TCP;
 using DDL.Commands;
 using DML.Commands;
 using DTO;
@@ -105,14 +106,35 @@ namespace DBMS
         }
         #region TCP
         private TcpListener _listener;
-        public void Listen()
+        public async void Listen()
         {
             _listener = new TcpListener(IPAddress.Any, _settings.Port);
             //_semaphore 
-            var task = new Task(() =>
+            var task = new Task(async () =>
             {
                 _listener.Start();
-                while (true)
+               // var t = _listener.AcceptTcpClient();
+                try
+                {
+                    while(true)
+                    {
+                        var tcpClient = _listener.AcceptTcpClient();
+                        //await _listener?.AcceptTcpClientAsync();
+
+                        var p = new ClientProtocol(tcpClient);
+                        p.ExcecuteCommand = ReadCommand;
+
+                        await p.StartAsync();
+                    }
+
+
+                }
+                catch(Exception ex)
+                {
+
+                }
+
+                /*while (true)
                 {
                     TcpClient client = _listener.AcceptTcpClient();
                     NetworkStream ns = client.GetStream();
@@ -120,7 +142,6 @@ namespace DBMS
                     {
                         var clientTask = new Task(() =>
                         {
-
                             byte[] bytes = null;
                             if (ns.CanRead)
                             {
@@ -139,7 +160,7 @@ namespace DBMS
 
                             var res = ReadCommand(line);
                             var json = JsonConvert.SerializeObject(res, Formatting.Indented);
-                            bytes = System.Text.ASCIIEncoding.UTF8.GetBytes(json);
+                            bytes = ASCIIEncoding.UTF8.GetBytes(json);
                             byte[] bytesLength = BitConverter.GetBytes(bytes.Length);
 
                             ////Передаем длину
@@ -161,7 +182,7 @@ namespace DBMS
                     {
                         //Console.WriteLine(ex.Message);
                     }
-                }
+                }*/
             });
             task.Start();
             task.Wait();
@@ -169,7 +190,7 @@ namespace DBMS
         }
         #endregion
 
-        TransferObject ReadCommand(string line)
+        public TransferObject ReadCommand(string line)
         {
             var to = new TransferObject();
             try

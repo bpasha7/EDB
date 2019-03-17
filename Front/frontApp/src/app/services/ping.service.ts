@@ -18,7 +18,7 @@ export class PingService {
     return new Promise<number>((resolve, reject) => {
       window.ping.ping(
         { address: this.host, port: 80, attempts: 3 }, function (data) {
-          console.log(data);
+          //console.log(data);
           if (data[0].results.length >= 1) {
             resolve(data[0].results[2].time);
           } else {

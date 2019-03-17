@@ -45,8 +45,17 @@ namespace DML.Commands
             var fromIndex = getIndexWord(words, "from");
             if (fromIndex + 1 >= words.Length)
                 throw new SelectCommandParse($"Not found table name into query.");
-            // set table name
-            TableName = words[fromIndex + 1];
+            // set table name and database name if format [dbname].[tableName]
+            var tableAndDatabaseNames = words[fromIndex + 1].Split('.');
+            if (tableAndDatabaseNames.Length == 2)
+            {
+                DatabaseName = tableAndDatabaseNames[0];
+                TableName = tableAndDatabaseNames[1];
+            }
+            else
+            {
+                TableName = tableAndDatabaseNames[0];
+            }
             // set flag if all columns
             if (words[1] == "*" && fromIndex == 2)
                 AllColumns = true;

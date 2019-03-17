@@ -26,27 +26,9 @@ export class ViewTableComponent implements OnInit {
     this.route.params.subscribe(params => {
       this.db = params['db'];
       this.table = params['table'];
-      // this.tcpService.sendMessage('# ' + this.db).then(res => {
-      //   this.tcpService.sendMessage('select * from ' + this.table).then(res2 => {
-      //     this.data = [];
-      //     const rows = res2.Data.Values;
-      //     this.displayedColumns = res2.Data.Headers;
-      //     rows.forEach(row => {
-      //       const dataRow = {};
-      //       for (let index = 0; index < this.displayedColumns.length; index++) {
-      //         dataRow[this.displayedColumns[index]] = row[index];
-      //       }
-      //       this.data.push(dataRow);
-      //     });
-      //     this.columnsToDisplay = this.displayedColumns.slice();
-      //     this.snackBar.open(res2.Time, 'Ок', {
-      //       duration: 3500,
-      //     });
-      //   });
-      // });
     });
     
-    await this.executeCommand('select * from ' + this.table);
+    await this.executeCommand(`select * from ${this.db}.${this.table}`);
   }
 
   async executeCommand(command) {

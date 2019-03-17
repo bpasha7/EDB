@@ -127,6 +127,7 @@ export class AppComponent {
   }
 
   async loadTree() {
+    debugger;
     const data = await this.tcpService.send('/show databases');
     const treeNodes = JSON.parse(data.Data.Message);
     this.database.rootLevelNodes = [];

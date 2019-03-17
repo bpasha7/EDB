@@ -96,7 +96,7 @@ namespace DBMS
         public ResultData SelectFromTable(string[] words, out string executeInfo)
         {
             var cmd = new SelectCommand(words);
-            var table = new Table(_path, Name, cmd.TableName);
+            var table = new Table(_path, cmd.DatabaseName ?? Name, cmd.TableName);
             var start = _stopwatch.Elapsed;
             var res = table.Select(cmd);
             var executeTime = _stopwatch.Elapsed - start;
