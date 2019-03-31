@@ -1,6 +1,6 @@
 import { TcpService } from './services/tcp.service';
 import { FlatTreeControl } from '@angular/cdk/tree';
-import { Component, Injectable } from '@angular/core';
+import { Component, Injectable, OnInit, AfterContentInit } from '@angular/core';
 import { BehaviorSubject, Observable, merge } from 'rxjs';
 import { TransferObject } from './models/transfer-object';
 import { CollectionViewer, SelectionChange } from '@angular/cdk/collections';
@@ -108,12 +108,17 @@ export class DynamicDataSource {
   providers: [DynamicDatabase]
 })
 
-export class AppComponent {
+export class AppComponent implements AfterContentInit {
+
   title = 'frontApp';
   message = '/info';
   treeControl: FlatTreeControl<DynamicFlatNode>;
 
   dataSource: DynamicDataSource;
+
+  async ngAfterContentInit() {
+    await this.loadTree();
+  }
 
   constructor(
     private tcpService: TcpService,
@@ -123,12 +128,12 @@ export class AppComponent {
     this.dataSource = new DynamicDataSource(this.treeControl, database);
 
     this.dataSource.data = database.initialData();
-    this.loadTree();
+
   }
 
   async loadTree() {
-    debugger;
     const data = await this.tcpService.send('/show databases');
+    if (!data) return;
     const treeNodes = JSON.parse(data.Data.Message);
     this.database.rootLevelNodes = [];
     treeNodes.forEach(element => {
@@ -136,15 +141,6 @@ export class AppComponent {
     });
     this.database.dataMap = new Map<string, string[]>(treeNodes);
     this.dataSource.data = this.database.initialData();
-    /*this.tcpService.sendMessage('/show databases').then(res => {
-      const treeNodes = JSON.parse(res.Data.Message);
-      this.database.rootLevelNodes = [];
-      treeNodes.forEach(element => {
-        this.database.rootLevelNodes.push(element[0]);
-      });
-      this.database.dataMap = new Map<string, string[]>(treeNodes);
-      this.dataSource.data = this.database.initialData();
-    });*/
   }
 
   getLevel = (node: DynamicFlatNode) => node.level;

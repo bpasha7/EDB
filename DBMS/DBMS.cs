@@ -52,6 +52,7 @@ namespace DBMS
             _logger = logger;
             _logger.LogInformation("Set system settings.");
             _settings = settings.Value;
+            _currentDatabase = new Database(_settings.RootPath, "SYSTEM");
             _stopwatch = new Stopwatch();
         }
         /// <summary>
@@ -298,12 +299,14 @@ namespace DBMS
                     _logger.LogInformation($"{info}.");
                     CommandLine.WriteInfo(info);
                     res.DataType = ResultDataType.DataSet;
+                    var d = res.Values.ToList();
+                    d.AddRange(res.Values);//
+                    d.AddRange(res.Values);
                     var resData = new ResultData
                     {
                         DataType = ResultDataType.DataSet,
                         Headers = res.Headers,
                         Values = res.Values
-                        //Message = JsonConvert.SerializeObject(res, Formatting.Indented)
                     };
                     to.Data = resData;
                     to.Time = info;
@@ -395,7 +398,7 @@ namespace DBMS
                 db.LoadTablesInfo();
                 arr.Add(new object[] { db.Name, db.Tables.Select(t => t.Name).ToArray() });
             }
-            var json = JsonConvert.SerializeObject(arr.ToArray(), Formatting.Indented);
+            var json = JsonConvert.SerializeObject(arr.ToArray(), Formatting.None);
             return json.ToString();
         }
 

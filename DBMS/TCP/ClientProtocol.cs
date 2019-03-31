@@ -82,7 +82,7 @@ namespace DBMS.TCP
                 else
                 {
                     var result = ExcecuteCommand(data);
-                    var json = JsonConvert.SerializeObject(result, Formatting.Indented);
+                    var json = JsonConvert.SerializeObject(result, Formatting.None);
                     var bytes = ASCIIEncoding.UTF8.GetBytes(json);
                     await writeStreamAsync(bytes);
                 }

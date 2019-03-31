@@ -19,7 +19,9 @@ export class ViewTableComponent implements OnInit {
     private tcpService: TcpService,
     private route: ActivatedRoute,
     public snackBar: MatSnackBar
-  ) { }
+  ) { 
+     //this.executeCommand(`select * from test.stud`);
+  }
 
   async ngOnInit() {
 
@@ -32,12 +34,10 @@ export class ViewTableComponent implements OnInit {
   }
 
   async executeCommand(command) {
-    debugger;
     //const res1 = await this.tcpService.send('# ' + this.db);
 
     const data = await this.tcpService.send(command);
-
-    debugger;
+    if(!data) return;
     this.data = [];
     const rows = data.Data.Values;
     this.displayedColumns = data.Data.Headers;

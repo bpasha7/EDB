@@ -45,6 +45,7 @@ namespace DBMS
         /// BIT - 2
         /// VARCHAR(*) - 3
         /// DATETIME - 4
+        /// GUID - 5
         /// </summary>
         public byte Type { get => _type; set => _type = value; }
         /// <summary>
@@ -124,6 +125,10 @@ namespace DBMS
                     _type = 4;
                     _size = sizeof(long);
                     break;
+                case "guid":
+                    _type = 5;
+                    _size = 36;///Guid.NewGuid().ToString() => 36 character
+                    break;
                 default:
                     throw new ColumnError($"'{splited[1]}' is not supported type. ");
             }
@@ -144,6 +149,8 @@ namespace DBMS
                 // DATETIME type
                 case 4:
                     return "DATETIME";
+                case 5:
+                    return "GUID";
                 default:
                     return "";
             }

@@ -85,6 +85,5 @@ declare global {
         fs: any;
         net: any;
         ping: any;
-        promiseSocket: any;
     }
 }

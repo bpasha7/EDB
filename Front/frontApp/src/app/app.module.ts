@@ -17,7 +17,7 @@ const appRoutes: Routes = [
   // { path: 'client/:id', component: ClientComponent },
   { path: 'dashboard', component: DashboardComponent },
   { path: 'db/:db/:table', component: ViewTableComponent },
-  { path: '', component: DashboardComponent },
+  //{ path: '', component: DashboardComponent },
 
 ];
 /*Routes */
