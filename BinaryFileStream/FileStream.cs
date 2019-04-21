@@ -15,8 +15,6 @@ namespace BinaryFileStream
         private static List<string> _blockedDatabaseTables = new List<string>();
         private readonly string _path;
         private System.IO.FileStream _stream;
-        //private BinaryWriter _streamWriter;
-        //private BinaryReader _streamReader;
         private string FileName;
         public readonly string Database;
         /// <summary>
@@ -34,16 +32,11 @@ namespace BinaryFileStream
             Database = dataBaseName;
             // set table name
             FileName = fileName;
+            // set path to file
             _path = GetPath(type);
-            // set current path to database table
-            //_path = GetPath(head);
             // check blocked or not
             if (_blockedDatabaseTables.Contains(_path))
                 throw new FileSystemError($"Database [{dataBaseName}] is blocked.");
-            //else
-            //    // insert database table into block list
-            //    _blockedDatabaseTables.Add(_path);
-
         }
         #region File Actions
         /// <summary>
@@ -51,9 +44,6 @@ namespace BinaryFileStream
         /// </summary>
         public void Create()
         {
-            //_stream?.Close();
-            //_stream = new System.IO.FileStream(_path, FileMode.Create);
-            //_stream.Close();
             var createStream = File.Create(_path);
             createStream.Close();
         }
