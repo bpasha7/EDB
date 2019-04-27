@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { TcpService } from '../../services/tcp.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router, NavigationEnd,  Event, } from '@angular/router';
 import { MatSnackBar } from '@angular/material';
 
 @Component({
@@ -18,9 +18,17 @@ export class ViewTableComponent implements OnInit {
   constructor(
     private tcpService: TcpService,
     private route: ActivatedRoute,
-    public snackBar: MatSnackBar
+    public snackBar: MatSnackBar,
+    private router: Router
   ) { 
      //this.executeCommand(`select * from test.stud`);
+     router.events.subscribe( (event: Event) => {
+
+
+      if (event instanceof NavigationEnd) {
+        if (this.db && this.table) this.executeCommand(`select * from ${this.db}.${this.table}`);
+      }
+  });
   }
 
   async ngOnInit() {
@@ -29,7 +37,6 @@ export class ViewTableComponent implements OnInit {
       this.db = params['db'];
       this.table = params['table'];
     });
-    
     await this.executeCommand(`select * from ${this.db}.${this.table}`);
   }
 

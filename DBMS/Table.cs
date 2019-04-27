@@ -4,6 +4,7 @@ using DDL.Commands;
 using DML.Commands;
 using DTO;
 using Errors;
+using org.mariuszgromada.math.mxparser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -335,15 +336,41 @@ namespace DBMS
             return values;
         }
 
+        private bool checkCondition(Condition condition, string columnName, byte columnType, object columnValue)
+        {
+            switch (columnType)
+            {
+                case 1:
+                case 2:
+                    {
+                        var val = Convert.ToInt32(columnValue);
+                        return condition.Operate(columnName, val);
+                    }
+                case 3:
+                    {
+                        var val = columnValue as string;
+                        return condition.Operate(columnName, val);
+                    }
+                case 4:
+                    {
+                        var val = Convert.ToDateTime(columnValue);// Convert.ToInt64(recodValues[kV.Value]);
+                        return condition.Operate(columnName, val);
+                    }
+                default:
+                    return false;
+            }
+        }
+
         private bool checkConditions(IList<Condition> conditions, IList<string> operators, Dictionary<string, int> columnDictionary, object[] recodValues)
         {
-            bool res = true;
+            //bool res = true;
             // if single condition
             if (conditions.Count == 1 && operators.Count == 0 && columnDictionary.Count == 1)
             {
                 var kV = columnDictionary.ElementAt(0);
                 var col = Columns[kV.Value];
-                switch (col.Type)
+                return checkCondition(conditions[0], col.Name, col.Type, recodValues[kV.Value]);
+                /*switch (col.Type)
                 {
                     case 1:
                         {
@@ -371,13 +398,34 @@ namespace DBMS
                         }
                     default:
                         return false;
-                }
+                }*/
             }
             else
             {
-
+                var conditionsResults = new List<int>();
+                for (int i = 0; i < conditions.Count(); i++)
+                {
+                    var kV = columnDictionary.ElementAt(i);
+                    var col = Columns[kV.Value];
+                    var result = checkCondition(conditions[i], col.Name, col.Type, recodValues[kV.Value]);
+                    conditionsResults.Add(result ? 1 : 0);
+                }
+                var sb = new StringBuilder();
+                //var res = conditionsResults[0];
+                sb.Append(conditionsResults[0]);
+                for (int i = 0; i < operators.Count(); i++)
+                {
+                    if (operators[i].ToLower() == "and")
+                        sb.Append("&&");
+                    if (operators[i].ToLower() == "or")
+                        sb.Append("||");
+                    sb.Append(conditionsResults[i + 1]);
+                }
+                Expression e = new Expression(sb.ToString());
+                var res = Convert.ToInt32(e.calculate());
+                return res == 1;
             }
-            return res;
+
         }
 
         private void select(SelectCommand cmd, ResultData resultData, IList<int> positions = null)

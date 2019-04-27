@@ -6,7 +6,15 @@ namespace DDL.Commands
 {
     public abstract class DDLCommand
     {
+        /// <summary>
+        /// SQL command text
+        /// </summary>
         protected string CommandText { get; set; }
+
+        /// <summary>
+        /// DatabaseName
+        /// </summary>
+        public string DatabaseName { get; set; }
 
         public DDLCommand(string query)
         {

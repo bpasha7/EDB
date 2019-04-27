@@ -67,7 +67,7 @@ namespace DBMS
         public string CreateTable(string query)
         {
             var cmd = new CreateTableCommand(query);
-            var table = new Table(_path, Name, cmd.TableName);
+            var table = new Table(_path, cmd.DatabaseName ?? Name, cmd.TableName);
             var start = _stopwatch.Elapsed;
             table.Create(cmd);
             var executeTime = _stopwatch.Elapsed - start;

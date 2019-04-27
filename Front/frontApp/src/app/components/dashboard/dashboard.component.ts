@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy, AfterContentInit } from '@angular/core';
 import { TcpService } from '../../services/tcp.service';
-//import { PingService } from '../../services/ping.service';
+import { PingService } from '../../services/ping.service';
 import { DatePipe } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 
@@ -24,16 +24,16 @@ export class DashboardComponent implements AfterContentInit, OnDestroy {
   databases: any = [];
   constructor(
     private tcpService: TcpService,
-    //private pingService: PingService,
+    private pingService: PingService,
     public datepipe: DatePipe
   ) { }
 
   async ngAfterContentInit() {
     await this.loadDatabaseSizes();
 
-    /*this.timer = setInterval(() => {
+    this.timer = setInterval(() => {
       this.updateChart();
-    }, 3000);*/
+    }, 3000);
 
   }
 
@@ -43,7 +43,6 @@ export class DashboardComponent implements AfterContentInit, OnDestroy {
 
   async loadDatabaseSizes() {
     const res = await this.tcpService.send('/show databases size');
-    debugger;
     if(res) this.databases = JSON.parse(res.Data.Message);
     /*this.tcpService.sendMessage().then(res => {
       this.databases = JSON.parse(res.Data.Message);
@@ -51,7 +50,7 @@ export class DashboardComponent implements AfterContentInit, OnDestroy {
   }
 
   updateChart() {
-    /*this.pingService.pingServer().then(sec => {
+    this.pingService.pingServer().then(sec => {
       if (sec !== undefined) {
         if (this.lineChartData[0].data.length > 15) {
           this.lineChartData[0].data.shift();
@@ -64,6 +63,6 @@ export class DashboardComponent implements AfterContentInit, OnDestroy {
           this.pingChart.chart = this.pingChart.getChartBuilder(this.pingChart.ctx);
         }
       }
-    });*/
+    });
   }
 }

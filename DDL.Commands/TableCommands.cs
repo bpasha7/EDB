@@ -37,7 +37,17 @@ namespace DDL.Commands
                 .Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             if (commandWords.Length != 3)
                 throw new CreateTableParse($"Command has incorrect signature. Check table name.");
-            TableName = commandWords[2].Trim();
+            // set table name and database name if format [dbname].[tableName]
+            var tableAndDatabaseNames = commandWords[2].Split('.');
+            if (tableAndDatabaseNames.Length == 2)
+            {
+                DatabaseName = tableAndDatabaseNames[0];
+                TableName = tableAndDatabaseNames[1];
+            }
+            else
+            {
+                TableName = tableAndDatabaseNames[0];
+            }
             // 
             Columns = CommandText?
                 .Substring(openBacket + 1, closeBacket - openBacket - 1)

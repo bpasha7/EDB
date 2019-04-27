@@ -73,24 +73,8 @@ namespace DML.Commands
             }
 
 
-            var orderIndex = -1;
-            var whereIndex = -1;
-            try
-            {
-                orderIndex = getIndexWord(words, "order");
-            }
-            catch (SelectCommandParse error)
-            {
-                // skip if no order by clause
-            }
-            try
-            {
-                whereIndex = getIndexWord(words, "where");
-            }
-            catch (SelectCommandParse error)
-            {
-                // skip if no order by clause
-            }
+            var orderIndex = getIndexWord(words, "order"); ;
+            var whereIndex = getIndexWord(words, "where"); ;
             // parse conditions
             if (whereIndex != -1)
             {
@@ -163,9 +147,10 @@ namespace DML.Commands
                 .Select((text, index) => new { Text = text, Index = index })
                 .Where(w => w.Text.ToLower() == word)
                 .SingleOrDefault();
-            if (i == null)
+            return i == null ? -1 : i.Index;
+            /*if (i == null)
                 throw new SelectCommandParse($"Word {word} not found in query.");
-            return i.Index;
+            return i.Index;*/
         }
     }
 }

@@ -27,6 +27,10 @@ namespace DBMS
     public class DatabaseManagmentSystem
     {
         /// <summary>
+        /// Tcp listener for network interface
+        /// </summary>
+        private readonly TcpListener _tcpListener;
+        /// <summary>
         /// System setting from json file
         /// </summary>
         private readonly SystemSettings _settings;
@@ -52,7 +56,9 @@ namespace DBMS
             _logger = logger;
             _logger.LogInformation("Set system settings.");
             _settings = settings.Value;
+            CheckDataBaseSystem();
             _currentDatabase = new Database(_settings.RootPath, "SYSTEM");
+            _tcpListener = new TcpListener(IPAddress.Any, _settings.Port);
             _stopwatch = new Stopwatch();
         }
         /// <summary>
@@ -106,88 +112,30 @@ namespace DBMS
             }
         }
         #region TCP
-        private TcpListener _listener;
         public async void Listen()
         {
-            _listener = new TcpListener(IPAddress.Any, _settings.Port);
-            //_semaphore 
-            var task = new Task(async () =>
+            try
             {
-                _listener.Start();
-               // var t = _listener.AcceptTcpClient();
-                try
+                _tcpListener?.Start();
+
+                while (true)
                 {
-                    while(true)
-                    {
-                        var tcpClient = _listener.AcceptTcpClient();
-                        //await _listener?.AcceptTcpClientAsync();
+                    var tcpClient = _tcpListener?.AcceptTcpClient();
 
-                        var p = new ClientProtocol(tcpClient);
-                        p.ExcecuteCommand = ReadCommand;
+                    var interaction = new ClientProtocol(tcpClient);
+                    interaction.ExcecuteCommand = ReadCommand;
 
-                        await p.StartAsync();
-                    }
-
-
+                    await interaction.StartAsync();
                 }
-                catch(Exception ex)
-                {
-
-                }
-
-                /*while (true)
-                {
-                    TcpClient client = _listener.AcceptTcpClient();
-                    NetworkStream ns = client.GetStream();
-                    try
-                    {
-                        var clientTask = new Task(() =>
-                        {
-                            byte[] bytes = null;
-                            if (ns.CanRead)
-                            {
-                                //получаем длину строки int
-                                bytes = new byte[4];
-                                ns.Read(bytes, 0, 4);
-                            }
-                            var length = BitConverter.ToInt32(bytes, 0);
-                            if (ns.CanRead)
-                            {
-                                //поулчаем строку
-                                bytes = new byte[length];
-                                ns.Read(bytes, 0, length);
-                            }
-                            var line = length == 0 ? "" : Encoding.UTF8.GetString(bytes, 0, length);
-
-                            var res = ReadCommand(line);
-                            var json = JsonConvert.SerializeObject(res, Formatting.Indented);
-                            bytes = ASCIIEncoding.UTF8.GetBytes(json);
-                            byte[] bytesLength = BitConverter.GetBytes(bytes.Length);
-
-                            ////Передаем длину
-                            //if (ns.CanWrite)
-                            //{
-                            //    ns.Write(bytesLength, 0, bytesLength.Length);
-                            //}
-                            //Передаем строку
-                            if (ns.CanWrite)
-                            {
-                                ns.Write(bytes, 0, bytes.Length);
-                            }
-                            ns.Close();
-                            client.Close();
-                        });
-                        clientTask.Start();
-                    }
-                    catch (Exception ex)
-                    {
-                        //Console.WriteLine(ex.Message);
-                    }
-                }*/
-            });
-            task.Start();
-            task.Wait();
-            _listener.Stop();
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError($"{ex}");
+            }
+            finally
+            {
+                _tcpListener?.Stop();
+            }
         }
         #endregion
 
@@ -437,6 +385,23 @@ namespace DBMS
         public string GetAuthors()
         {
             return _settings.Authors;
+        }
+
+        public bool CheckDataBaseSystem()
+        {
+            const string systemDataBaseName = "SYSTEM";
+            const string systemUsersTableName = "USERS";
+            var dirPath = $"{_settings.RootPath}{systemDataBaseName}";
+            if (Directory.Exists(dirPath))
+                return true;
+
+            CreateDatabase(systemDataBaseName);
+            ChangeDatabase(systemDataBaseName);
+            _currentDatabase?.CreateTable($"create table {systemUsersTableName} (UserId int index IND_1, UserName varchar(15), UserPassword varchar(20), IsOwner bit)");
+            _currentDatabase?.InsertIntoTable($"insert into {systemUsersTableName} Values (1, 'root', 'password', 1)");
+
+            return true;
+
         }
     }
 }
