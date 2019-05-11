@@ -16,6 +16,8 @@ function createWindow () {
     backgroundColor: '#ffffff',
     icon: `file://${__dirname}/dist/assets/logo.png`
   })
+
+  win.setMenu(null);
   process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
 
    const basepath = app.getAppPath();

@@ -73,8 +73,8 @@ namespace DML.Commands
             }
 
 
-            var orderIndex = getIndexWord(words, "order"); ;
-            var whereIndex = getIndexWord(words, "where"); ;
+            var orderIndex = getIndexWord(words, "order");
+            var whereIndex = getIndexWord(words, "where");
             // parse conditions
             if (whereIndex != -1)
             {

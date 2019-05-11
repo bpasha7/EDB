@@ -120,6 +120,9 @@ namespace DBMS
                 // parse int
                 case 1:
                     int resInt = 0;
+#if DEBUG
+                    return true;
+#endif
                     return Int32.TryParse(value, out resInt);
                 // parse byte
                 case 2:
@@ -196,7 +199,13 @@ namespace DBMS
                         switch (Columns[i].Type)
                         {
                             case 1:
-                                int intValue = Convert.ToInt32(dataToInsert[i].Value);
+
+                                var numberValue = dataToInsert[i].Value;
+#if DEBUG
+                                numberValue = $"{Convert.ToInt32(Convert.ToDouble(numberValue))}";
+
+#endif
+                                int intValue = Convert.ToInt32(numberValue);
                                 _fileStream.WriteInt(intValue);
                                 // if has index name write index
                                 if (Columns[i].IndexName?.Length > 0)
@@ -289,7 +298,7 @@ namespace DBMS
         {
             //get block position
             var pos = (long)_fileStream.GetPosition();
-            var columns = Columns.Where(col => col.Visible).ToArray();
+            var columns = Columns.ToArray();//.Where(col => col.Visible)
             var values = new object[columns.Length];
             //var current = 0;
             // cycle by colmns to read
@@ -365,7 +374,11 @@ namespace DBMS
         {
             //bool res = true;
             // if single condition
-            if (conditions.Count == 1 && operators.Count == 0 && columnDictionary.Count == 1)
+            if(conditions.Count == 0)
+            {
+                return true;
+            }
+            else if (conditions.Count == 1 && operators.Count == 0 && columnDictionary.Count == 1)
             {
                 var kV = columnDictionary.ElementAt(0);
                 var col = Columns[kV.Value];
@@ -463,6 +476,8 @@ namespace DBMS
             using (_fileStream = new FileStream(Path, Database, Name))
             {
                 _fileStream.Open();
+                var columnsIndexes = Columns.Where(column => column.Visible).Select((item, index) => index).OrderBy(i => i).ToArray();
+
                 if (positions == null)
                 {
                     _fileStream.SetPosition(0);
@@ -480,7 +495,7 @@ namespace DBMS
                         // check condtions
                         if (checkConditions(cmd.Conditions, cmd.ConditionsOperators, columnDictionary, record))
                         {
-                            resultData.Values.Add(record);
+                            resultData.Values.Add(columnsIndexes.Length == Columns.Length ? record : trimRecord(record, columnsIndexes));
                             _logger.Trace($"Record {i + 1} was inserted into result data.");
                         }
                         else
@@ -503,24 +518,32 @@ namespace DBMS
 
                         _logger.Trace($"Read record {i + 1}.");
                         var record = readRecord();
-                        resultData.Values.Add(record);
                         // check condtions
-                        //if (checkConditions(cmd.Conditions, cmd.ConditionsOperators, columnDictionary, record))
-                        //{
-                        //    resultData.Values.Add(record);
-                        //    _logger.Trace($"Record {i + 1} was inserted into result data.");
-                        //}
-                        //else
-                        //{
-                        //    _logger.Trace($"Record {i + 1} was not inserted into result data.");
-
-                        //}
+                        if (checkConditions(cmd.Conditions, cmd.ConditionsOperators, columnDictionary, record))
+                        {
+                            resultData.Values.Add(record);
+                            _logger.Trace($"Record {i + 1} was inserted into result data.");
+                        }
+                        else
+                        {
+                            _logger.Trace($"Record {i + 1} was not inserted into result data.");
+                        }
                         _logger.Trace($"------------------------------------.");
 
                     }
                 }
                 _fileStream.Close();
             }
+        }
+
+        private object[] trimRecord(object[] record, int[] columnsIndexes)
+        {
+            var newRecord = new object[columnsIndexes.Length];
+            for (int i = 0; i < columnsIndexes.Length; i++)
+            {
+                newRecord[i] = record[columnsIndexes[i]];
+            }
+            return newRecord;
         }
         /// <summary>
         /// Select data from table

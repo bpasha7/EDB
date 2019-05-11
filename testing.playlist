@@ -1,0 +1,40 @@
+<Playlist Version="1.0">
+  <Add Test="Test_EDB.Integration_test.CommandExecuteTest.CreateAndInsertTest" />
+  <Add Test="Test_EDB.ColumnTest.ParseTypeOfColumnTest(arguments: &quot;testName   &quot;)" />
+  <Add Test="Test_EDB.ColumnTest.ParseTypeOfColumnTest(arguments: &quot;testName inT&quot;)" />
+  <Add Test="Test_EDB.DMLCommandTest.OperateStringConditionsTest(sqlQuery: &quot;a = 'test'&quot;, val: &quot;test&quot;)" />
+  <Add Test="Test_EDB.ColumnTest.ParseTypeOfColumnTest(arguments: &quot;testName INT   &quot;)" />
+  <Add Test="Test_EDB.DMLCommandTest.GetingWordIndexFromArray(sqlQuery: &quot;SELECT id From test&quot;)" />
+  <Add Test="Test_EDB.DMLCommandTest.ParseConditionsSelectCommandTest(1VzwtayI3++Sp78ab+keUbFODz4=)" />
+  <Add Test="Test_EDB.ColumnTest.ParseTypeOfColumnTest(arguments: &quot;testName&quot;)" />
+  <Add Test="Test_EDB.DMLCommandTest.OperateIntConditionsTest(sqlQuery: &quot;a &gt;= 0&quot;, val: 0)" />
+  <Add Test="Test_EDB.FileStramTest.RewriteDataIntoFileTest" />
+  <Add Test="Test_EDB.DMLCommandTest.OperateIntConditionsTest(sqlQuery: &quot;a &lt;&gt; 0&quot;, val: -100)" />
+  <Add Test="Test_EDB.Integration_test.CommandExecuteTest.InsertIntoIndexTableTest" />
+  <Add Test="Test_EDB.DDLCommandParsingTest.ParseCreateDenseIndexCommandTest" />
+  <Add Test="Test_EDB.Integration_test.CommandExecuteTest.CheckSortingIndexTableTest" />
+  <Add Test="Test_EDB.Integration_test.CommandExecuteTest.InsertTest" />
+  <Add Test="Test_EDB.DMLCommandTest.ParsePatternedInsertCommandTest(IRVoD/lQ+WEie5uZ4ZF3dHP4d2U=)" />
+  <Add Test="Test_EDB.DMLCommandTest.GetingWordIndexFromArray(sqlQuery: &quot;select id, text from test&quot;)" />
+  <Add Test="Test_EDB.Integration_test.CommandExecuteTest.CreateAndInsertWithIndexTest" />
+  <Add Test="Test_EDB.DMLCommandTest.ParseNotPatternedInsertCommandTest(sqlQuery: &quot;INSERT INTO test VALUES (2)&quot;)" />
+  <Add Test="Test_EDB.DMLCommandTest.ParsePatternedInsertCommandTest(sqlQuery: &quot;INSERT INTO test (ID, Name) VALUES (2)&quot;)" />
+  <Add Test="Test_EDB.DMLCommandTest.ParseConditionsSelectCommandTest(sqlQuery: &quot;select * from test where a &gt; c and c == 0 or c &gt; 1&quot;)" />
+  <Add Test="Test_EDB.UnitTestSettings.Test1" />
+  <Add Test="Test_EDB.DMLCommandTest.OperateIntConditionsTest(sqlQuery: &quot;a &lt;= 0&quot;, val: -100)" />
+  <Add Test="Test_EDB.FileStramTest.AccessBlockedFilesTest" />
+  <Add Test="Test_EDB.DMLCommandTest.OperateStringConditionsTest(sqlQuery: &quot;a &lt;&gt; 'test'&quot;, val: &quot;test1&quot;)" />
+  <Add Test="Test_EDB.ColumnTest.ParseTypeOfColumnTest(arguments: &quot;testName  inT&quot;)" />
+  <Add Test="Test_EDB.DMLCommandTest.ParseConditionsSelectCommandTest(sqlQuery: &quot;select id FROM test where a &gt; c or c == 0 or c &gt; 1&quot;)" />
+  <Add Test="Test_EDB.DMLCommandTest.ParseNotPatternedInsertCommandTest(6/voIPRltx4uir5rMZzZMm9OAHA=)" />
+  <Add Test="Test_EDB.FileStramTest.WritingReadingFileTest" />
+  <Add Test="Test_EDB.DMLCommandTest.ParsePatternedInsertCommandTest(igzVT9PSkWvtkaSeb09V+n9cQao=)" />
+  <Add Test="Test_EDB.DMLCommandTest.ParseNotPatternedInsertCommandTest(gSG5goraQ78dijpfAUZXMwrcGDA=)" />
+  <Add Test="Test_EDB.DMLCommandTest.GetingWordIndexFromArray(sqlQuery: &quot;select * from test&quot;)" />
+  <Add Test="Test_EDB.ColumnTest.ParseTypeOfColumnTest(arguments: &quot;testName IN&quot;)" />
+  <Add Test="Test_EDB.DMLCommandTest.ParseConditionsSelectCommandTest(u51J08WCr6zRczUKNdgAhe2LjOE=)" />
+  <Add Test="Test_EDB.DMLCommandTest.OperateIntConditionsTest(sqlQuery: &quot;a = 0&quot;, val: 0)" />
+  <Add Test="Test_EDB.ColumnTest.ParseTypeOfColumnTest(arguments: &quot;testName int &quot;)" />
+  <Add Test="Test_EDB.DMLCommandTest.OperateIntConditionsTest(sqlQuery: &quot;a &gt; 0&quot;, val: 100)" />
+  <Add Test="Test_EDB.ColumnTest.ParseTypeOfColumnTest(arguments: &quot;testName   IN  &quot;)" />
+</Playlist>

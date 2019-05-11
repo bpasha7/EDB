@@ -1,5 +1,5 @@
 <mat-toolbar color="primary" class="my-header">
-  <button mat-icon-button (click)="sidenav.toggle()">
+  <button mat-icon-button (click)="sidenav.toggle() && loadTree()">
     <mat-icon>menu</mat-icon>
   </button>
 </mat-toolbar>
@@ -40,8 +40,8 @@
 <mat-toolbar class="my-footer">
   <div style="font-size: 12px; margin: auto;">Current Version 0.4.1 (beta)</div>
   <button mat-stroked-button routerLink="/dashboard">Dashboard</button>
-  <button mat-stroked-button routerLink="/db/work/emp">Test</button>
-  <button mat-stroked-button (click)="loadTree()">Tree</button>
+  <!-- <button mat-stroked-button routerLink="/db/work/emp">Test</button>
+  <button mat-stroked-button (click)="loadTree()">Tree</button> -->
 </mat-toolbar>
 <!-- </div> -->
 <!-- 

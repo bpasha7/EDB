@@ -26,7 +26,10 @@ export class ViewTableComponent implements OnInit {
 
 
       if (event instanceof NavigationEnd) {
-        if (this.db && this.table) this.executeCommand(`select * from ${this.db}.${this.table}`);
+        if (this.db && this.table) {
+          this.executeCommand(`select * from ${this.db}.${this.table}`);
+          this.message = `SELECT * FROM ${this.db}.${this.table}`;
+        }
       }
   });
   }
@@ -36,13 +39,13 @@ export class ViewTableComponent implements OnInit {
     this.route.params.subscribe(params => {
       this.db = params['db'];
       this.table = params['table'];
+      this.message = `SELECT * FROM ${this.db}.${this.table}`;
     });
     await this.executeCommand(`select * from ${this.db}.${this.table}`);
   }
 
   async executeCommand(command) {
     //const res1 = await this.tcpService.send('# ' + this.db);
-
     const data = await this.tcpService.send(command);
     if(!data) return;
     this.data = [];
@@ -59,6 +62,15 @@ export class ViewTableComponent implements OnInit {
     this.snackBar.open(data.Time, 'Ок', {
       duration: 3500,
     });
+  }
+
+  clickColumn(text, sqlScriptInput) {
+    debugger;
+    if (sqlScriptInput.selectionStart || sqlScriptInput.selectionStart == '0') {
+      const pos = sqlScriptInput.selectionStart;
+      this.message = `${this.message.slice(0, pos)}${text}${this.message.slice(pos)}`;
+      //this.message = this.message.splice(pos, 0, text);
+   }
   }
 
   async run() {
