@@ -8,10 +8,11 @@ namespace DBMS
 {
     /// <summary>
     /// Column of table
+    /// name|type|size|primaryKey|autoincrement|indexName
     /// </summary>
     public class Column
     {
-        /// name|type|size|primaryKey|indexName
+        
         private string _name;
         private int _size;
         private byte _type;
@@ -20,12 +21,17 @@ namespace DBMS
         private bool _visible;
 
         private byte _primaryKey;
+        private byte _autoIncrement;
         private string _indexName;
 
         /// <summary>
-        /// Id rimary key
+        /// Id primary key
         /// </summary>
         public byte PrimaryKey { get => _primaryKey; set => _primaryKey = value; }
+        /// <summary>
+        /// Auto Increment
+        /// </summary>
+        public byte AutoIncrement { get => _autoIncrement; set => _autoIncrement = value; }
         /// <summary>
         /// Name of index
         /// </summary>
@@ -71,6 +77,16 @@ namespace DBMS
             {
                 _primaryKey = 1;
                 arguments = arguments.Remove(isPrimary, PK_ATIBUTE.Length);
+            }
+            #endregion
+
+            #region define if autoincrement
+            var AUTO_INCREMENT = "autoincrement";
+            var isAutoIncrement = str.IndexOf(AUTO_INCREMENT);
+            if (isAutoIncrement > 0)
+            {
+                _autoIncrement = 1;
+                arguments = arguments.Remove(isAutoIncrement, AUTO_INCREMENT.Length);
             }
             #endregion
 

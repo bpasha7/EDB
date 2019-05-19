@@ -38,7 +38,7 @@ namespace DBMS
         {
             var dirPath = $"{path}{name}";
             if (!Directory.Exists(dirPath))
-                throw new Error($"Database [{name}] is not exist.");
+                throw new Error($"Database [{name}] does not exist.");
             _path = path;
             Name = name;
             _stopwatch = new Stopwatch();

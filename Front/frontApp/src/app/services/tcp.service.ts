@@ -67,7 +67,10 @@ export class TcpService {
           resolve(null);
         });
         client.on('data', (data) => {
-            recievedData = data;
+            if (recievedData)
+              recievedData += data;
+            else
+              recievedData = data;
             this.writeLog(`recieved ${data.length} bytes.`);
             client.end();
         });

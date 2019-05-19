@@ -185,6 +185,13 @@ namespace DBMS
                     // compare count iserted data and column count
                     if (dataToInsert.Count != Columns.Length)
                         throw new InsertCommandExcecute($"Inserted data does not match field count in table.");
+                    
+                    //TODO: 
+                    //only for the first column checking primary key auto increment
+                    /*if (Columns[0].AutoIncrement == 1)
+                    {
+                        dataToInsert.Insert(0, new KeyValuePair<string, string>("autoincrement", $"{}"));
+                    }*/
 
                     // check data to insert
                     for (int i = 0; i < Columns.Length; i++)
@@ -251,6 +258,7 @@ namespace DBMS
                 _fileStream.SetPosition(0);
                 _fileStream.WriteInt(pos);
                 _fileStream.Close();
+
                 _fileStream = new FileStream(Path, Database, Name, FileType.Scheme);
                 _fileStream.Open();
                 _fileStream.SetPosition(0);
@@ -476,7 +484,8 @@ namespace DBMS
             using (_fileStream = new FileStream(Path, Database, Name))
             {
                 _fileStream.Open();
-                var columnsIndexes = Columns.Where(column => column.Visible).Select((item, index) => index).OrderBy(i => i).ToArray();
+                var columnsIndexes = Columns.Select((item, index) => new { Index = index, Visible = item.Visible }).Where(item => item.Visible).Select(item => item.Index).OrderBy(i => i).ToArray();
+                // Columns.Where(column => column.Visible).Select((item, index) => index).OrderBy(i => i).ToArray();
 
                 if (positions == null)
                 {
@@ -521,7 +530,7 @@ namespace DBMS
                         // check condtions
                         if (checkConditions(cmd.Conditions, cmd.ConditionsOperators, columnDictionary, record))
                         {
-                            resultData.Values.Add(record);
+                            resultData.Values.Add(columnsIndexes.Length == Columns.Length ? record : trimRecord(record, columnsIndexes));
                             _logger.Trace($"Record {i + 1} was inserted into result data.");
                         }
                         else
@@ -576,11 +585,17 @@ namespace DBMS
                     var col = getColumnByName(item);
                     if (col == null)
                         throw new SelectCommandExcecute($"Columns [{item}] not exist into table [{Name}].");
-#warning 'Check setting flag or delete it'
-                    col.Visible = true;
-                    resultData.Headers.Add(col.Name);
-                    resultData.Types.Add(col.GetTypeName());
                 }
+                foreach (var column in Columns)
+                {
+                    column.Visible = cmd.ColumnsName.Contains(column.Name);
+                    if (column.Visible)
+                    {
+                        resultData.Headers.Add(column.Name);
+                        resultData.Types.Add(column.GetTypeName());
+                    }
+                }
+
             }
             select(cmd, resultData);
 
