@@ -1,6 +1,7 @@
 ﻿using DBMS;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using Xunit;
 
@@ -54,6 +55,20 @@ namespace Test_EDB.Integration_test
             foreach (var query in queries)
             {
                 db.InsertIntoTable(query);
+            }
+        }
+
+        [Fact]
+        public void CreateAndInsertCustomersTest2()
+        {
+            string path = "C:\\temp\\dbms\\", name = "test_db";
+            var db = new Database(path, name);
+            using (StreamReader sr = new StreamReader("C:\\Users\\Pavel\\Desktop\\load_employees.dump.txt"))
+            {
+                while (sr.Peek() >= 0)
+                {
+                    db.InsertIntoTable(sr.ReadLine());
+                }
             }
         }
     }

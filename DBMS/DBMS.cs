@@ -26,6 +26,10 @@ namespace DBMS
 {
     public class DatabaseManagmentSystem
     {
+        private readonly string systemDataBaseName = "SYSTEM";
+        private readonly string systemUsersTableName = "USERS";
+        private readonly string systemDataBasesTableName = "DATABASES";
+        private readonly string systemDataTableName = "DATATABLES";
         /// <summary>
         /// Tcp listener for network interface
         /// </summary>
@@ -306,6 +310,7 @@ namespace DBMS
             if (Directory.Exists(dirPath))
                 throw new Error($"Database [{databaseName}] is already exist.");
             Directory.CreateDirectory(dirPath);
+            _currentDatabase?.InsertIntoTable($"insert into {systemDataBaseName}.{systemDataBasesTableName} Values (1, '{databaseName}', '{DateTime.UtcNow}')");
             return $"Database [{databaseName}] was created.";
         }
 
@@ -389,17 +394,22 @@ namespace DBMS
 
         public bool CheckDataBaseSystem()
         {
-            const string systemDataBaseName = "SYSTEM";
-            const string systemUsersTableName = "USERS";
             var dirPath = $"{_settings.RootPath}{systemDataBaseName}";
             if (Directory.Exists(dirPath))
                 return true;
 
             CreateDatabase(systemDataBaseName);
             ChangeDatabase(systemDataBaseName);
+            #region add users table
             _currentDatabase?.CreateTable($"create table {systemUsersTableName} (UserId int index IND_1, UserName varchar(15), UserPassword varchar(20), IsOwner bit)");
             _currentDatabase?.InsertIntoTable($"insert into {systemUsersTableName} Values (1, 'root', 'password', 1)");
-
+            #endregion
+            #region add databases table
+            _currentDatabase?.CreateTable($"create table {systemDataBasesTableName} (DatabaseId int index IND_1, DatabaseName varchar(15), CreatedDate datetime)");
+            #endregion
+            #region add  datatable tables
+            _currentDatabase?.CreateTable($"create table {systemDataTableName} (TableId int index IND_1, DatabaseId int index IND_2, TableName varchar(15), CreatedDate datetime)");
+            #endregion
             return true;
 
         }

@@ -73,7 +73,18 @@ namespace DML.Commands
             }
             #endregion
             // get table name
-            TableName = splitedWords[2];
+            //TableName = splitedWords[2];
+            // set table name and database name if format [dbname].[tableName]
+            var tableAndDatabaseNames = splitedWords[2].Split('.');
+            if (tableAndDatabaseNames.Length == 2)
+            {
+                DatabaseName = tableAndDatabaseNames[0];
+                TableName = tableAndDatabaseNames[1];
+            }
+            else
+            {
+                TableName = tableAndDatabaseNames[0];
+            }
         }
 
     }

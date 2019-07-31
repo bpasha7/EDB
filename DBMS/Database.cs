@@ -81,7 +81,7 @@ namespace DBMS
         public string InsertIntoTable(string query)
         {
             var cmd = new InsertCommand(query);
-            var table = new Table(_path, Name, cmd.TableName);
+            var table = new Table(_path, cmd.DatabaseName ?? Name, cmd.TableName);
             var start = _stopwatch.Elapsed;
             table.Insert(cmd);
             var executeTime = _stopwatch.Elapsed - start;
